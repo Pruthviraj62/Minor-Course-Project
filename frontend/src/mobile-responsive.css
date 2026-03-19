@@ -1,0 +1,449 @@
+/* ============================================
+   PROFESSIONAL MOBILE RESPONSIVE DESIGN
+   Reference: Google Maps, Uber, Airbnb
+   ============================================ */
+
+/* Mobile First - Base Styles (Default) */
+:root {
+  --mobile-padding: 16px;
+  --mobile-gap: 12px;
+  --mobile-navbar-height: 56px;
+}
+
+/* ============================================
+   MOBILE (max-width: 767px)
+   Single column layout, full width
+   ============================================ */
+@media (max-width: 767px) {
+  /* Container resets */
+  .app-container {
+    overflow-x: hidden;
+  }
+
+  .main-content {
+    padding-top: var(--mobile-navbar-height);
+  }
+
+  /* Navbar Mobile */
+  .navbar {
+    padding: 12px 16px !important;
+    height: var(--mobile-navbar-height);
+    min-height: var(--mobile-navbar-height);
+  }
+
+  .navbar-brand {
+    font-size: 1.25rem !important;
+  }
+
+  .nav-link {
+    font-size: 0.875rem !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Map View - Full Width Stack */
+  .map-view {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    height: calc(100vh - var(--mobile-navbar-height));
+    overflow: hidden;
+  }
+
+  .map-view > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  /* Map Container - Fixed Height */
+  .map-view > div:nth-child(2) {
+    flex: 0 0 50vh;
+    min-height: 400px;
+    max-height: 60vh;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Vehicle Controls - Collapsible Card */
+  .vehicle-controls {
+    order: 1;
+    margin: 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 16px !important;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Station Recommender - Scrollable Card */
+  .station-recommender {
+    order: 3;
+    margin: 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 16px !important;
+    max-height: 40vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Grid Dashboard */
+  .grid-dashboard {
+    padding: 16px !important;
+  }
+
+  .grid-card {
+    margin-bottom: 12px;
+    padding: 16px !important;
+  }
+
+  /* Typography Mobile */
+  h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.3;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+  }
+
+  h4, h5, h6 {
+    font-size: 1rem !important;
+  }
+
+  /* Buttons Mobile */
+  .btn {
+    padding: 10px 16px !important;
+    font-size: 0.875rem !important;
+    min-height: 44px;
+  }
+
+  /* Form Controls Mobile */
+  .form-control,
+  .form-select {
+    font-size: 16px; /* Prevents iOS zoom */
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    margin-bottom: 6px;
+  }
+
+  .form-range {
+    height: 6px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Cards Mobile */
+  .card,
+  .glass-card {
+    padding: 16px !important;
+    margin-bottom: 12px;
+  }
+
+  /* Station Cards */
+  .station-list-item {
+    padding: 14px !important;
+    margin-bottom: 10px;
+  }
+
+  .station-list-item h5 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  /* Score Badges */
+  .score-badge {
+    padding: 6px 10px !important;
+    font-size: 0.8125rem !important;
+    min-width: 55px;
+  }
+
+  /* Metrics Grid - 2 columns on mobile */
+  .row.g-2 .col-4 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+
+  /* Chart Container */
+  .chart-container {
+    padding: 16px !important;
+    height: 280px !important;
+  }
+
+  /* Map Controls */
+  .leaflet-control-zoom {
+    transform: scale(0.9);
+    transform-origin: right top;
+  }
+
+  /* Map Popup */
+  .leaflet-popup-content {
+    width: 280px !important;
+    margin: 12px;
+    font-size: 0.875rem;
+  }
+
+  .leaflet-popup-content h4 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  .leaflet-popup-content button {
+    min-height: 40px;
+    font-size: 0.875rem;
+  }
+
+  /* ML Insights - Compact */
+  .ml-insights {
+    padding: 10px;
+    font-size: 0.75rem;
+  }
+
+  .ml-insights strong {
+    font-size: 0.6875rem;
+  }
+
+  /* Prediction Result Box */
+  .prediction-result {
+    padding: 14px;
+    margin-top: 12px;
+  }
+
+  .prediction-result h6 {
+    font-size: 0.8125rem;
+  }
+
+  /* Status Indicators */
+  .status-indicator {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* Badges */
+  .badge {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+
+  /* Spacing Utilities */
+  .mb-4 {
+    margin-bottom: 12px !important;
+  }
+
+  .mt-4 {
+    margin-top: 12px !important;
+  }
+
+  .gap-2 {
+    gap: 8px !important;
+  }
+
+  .gap-3 {
+    gap: 12px !important;
+  }
+
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================
+   TABLET (768px - 1024px)
+   Two column layout
+   ============================================ */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .navbar {
+    padding: 14px 24px !important;
+  }
+
+  .map-view {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .map-view > div:first-child {
+    width: 320px !important;
+  }
+
+  .map-view > div:last-child {
+    width: 340px !important;
+  }
+
+  .vehicle-controls,
+  .station-recommender {
+    padding: 18px !important;
+  }
+
+  .grid-dashboard {
+    padding: 24px !important;
+  }
+
+  .grid-card {
+    padding: 20px !important;
+  }
+
+  .chart-container {
+    height: 320px !important;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ============================================
+   DESKTOP (1025px+)
+   Three column layout (existing)
+   ============================================ */
+@media (min-width: 1025px) {
+  .map-view {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .map-view > div:first-child {
+    width: 380px !important;
+  }
+
+  .map-view > div:last-child {
+    width: 420px !important;
+  }
+}
+
+/* ============================================
+   TOUCH OPTIMIZATIONS
+   For devices with touch input
+   ============================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button,
+  .btn,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Remove hover on touch devices */
+  .station-card:hover,
+  .station-list-item:hover,
+  .card:hover {
+    transform: none;
+  }
+
+  /* Active state feedback */
+  .station-card:active,
+  .station-list-item:active {
+    transform: scale(0.98);
+    background: rgba(255, 179, 128, 0.08);
+  }
+
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Range sliders */
+  .form-range::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ============================================
+   LANDSCAPE MOBILE
+   Optimize for landscape orientation
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .navbar {
+    padding: 8px 16px !important;
+    height: 50px;
+  }
+
+  .map-view {
+    height: calc(100vh - 50px);
+  }
+
+  .map-view > div:nth-child(2) {
+    flex: 0 0 60vh;
+  }
+
+  .vehicle-controls,
+  .station-recommender {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  /* Hide less critical info */
+  .ml-insights {
+    display: none;
+  }
+
+  .prediction-result .row {
+    margin-bottom: 8px;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .btn-primary {
+    border: 2px solid #1A1A1A;
+  }
+
+  .station-list-item {
+    border-width: 2px;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  .navbar,
+  .vehicle-controls,
+  .station-recommender,
+  .map-view {
+    display: none;
+  }
+
+  body {
+    background: white;
+  }
+}
