@@ -29,7 +29,8 @@ const VehicleControls = ({
         battery_level: vehicleData.battery_level,
         battery_capacity: vehicleData.battery_capacity,
         vehicle_model: vehicleData.vehicle_model,
-        driving_conditions: vehicleData.driving_conditions
+        driving_conditions: vehicleData.driving_conditions,
+        weather_condition: vehicleData.weather_condition
       });
       
       setPrediction(response.data);
@@ -50,7 +51,7 @@ const VehicleControls = ({
     }, 1000);
     
     return () => clearTimeout(timer);
-  }, [vehicleData.battery_level, vehicleData.speed, vehicleData.driving_conditions]);
+  }, [vehicleData.battery_level, vehicleData.speed, vehicleData.driving_conditions, vehicleData.weather_condition]);
 
   const calculateTimeToEmpty = () => {
     if (!prediction) return null;
@@ -206,6 +207,22 @@ const VehicleControls = ({
             ⚡ Highway
           </button>
         </div>
+      </div>
+
+      {/* Weather Conditions */}
+      <div className="mb-4">
+        <label className="form-label">Weather Condition</label>
+        <select
+          name="weather_condition"
+          className="form-control"
+          value={vehicleData.weather_condition}
+          onChange={handleChange}
+        >
+          <option value="clear">☀️ Clear (Optimal)</option>
+          <option value="rain">🌧️ Rain (-12% Range)</option>
+          <option value="cold">❄️ Cold (-20% Range)</option>
+          <option value="hot">🥵 Hot (-5% Range)</option>
+        </select>
       </div>
 
       {/* Action Buttons */}

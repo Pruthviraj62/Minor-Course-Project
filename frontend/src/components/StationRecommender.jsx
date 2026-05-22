@@ -39,6 +39,11 @@ const StationRecommender = ({
     return Math.max(0, currentBattery - batteryPercentageUsed);
   };
 
+  const calculateCO2Saved = (distanceKm) => {
+    // Average petrol car emits ~192g CO2 per km. EV is ~0 tailpipe.
+    return (distanceKm * 0.192).toFixed(1);
+  };
+
   const calculateStationScore = (station, distance, eta, arrivalBattery) => {
     let score = 0;
     let breakdown = {};
@@ -61,8 +66,9 @@ const StationRecommender = ({
       : 50;
     breakdown.grid = Math.round(gridScore);
 
+    const currentPrice = station.dynamic_price_per_kwh || station.price_per_kwh;
     const maxPrice = 20;
-    const priceScore = (1 - station.price_per_kwh / maxPrice) * 100;
+    const priceScore = (1 - currentPrice / maxPrice) * 100;
     breakdown.price = Math.round(priceScore);
 
     const maxSpeed = 250;
@@ -140,12 +146,14 @@ const StationRecommender = ({
       }
       
       const scoreData = calculateStationScore(station, distance, eta, arrivalBattery);
+      const co2Saved = calculateCO2Saved(distance);
       
       return {
         ...station,
         distance_km: distance,
         eta_minutes: eta,
         arrival_battery: arrivalBattery,
+        co2_saved_kg: co2Saved,
         score: scoreData.total,
         score_breakdown: scoreData.breakdown,
         reachable: arrivalBattery > 10
@@ -288,9 +296,21 @@ const StationRecommender = ({
                   <div className="col-6">
                     <div style={{ color: 'var(--text-secondary)' }}>🔌 {station.available_chargers}/{station.total_chargers} free</div>
                     <div style={{ color: 'var(--text-secondary)' }}>⚡ {Array.isArray(station.power_kw) ? Math.max(...station.power_kw) : station.power_kw} kW</div>
+                    <div style={{ color: '#059669', marginTop: '4px', fontWeight: 600 }}>🌱 {station.co2_saved_kg} kg CO₂ saved</div>
                   </div>
                   <div className="col-6">
-                    <div style={{ color: 'var(--text-secondary)' }}>💰 ₹{station.price_per_kwh}/kWh</div>
+                    <div style={{ color: 'var(--text-secondary)' }}>
+                      💰 {station.dynamic_price_per_kwh ? (
+                        <>
+                          <span style={{ fontWeight: station.is_peak_pricing ? 700 : 500, color: station.is_peak_pricing ? '#DC2626' : 'inherit' }}>
+                            ₹{station.dynamic_price_per_kwh.toFixed(2)}/kWh
+                          </span>
+                          {station.is_peak_pricing && <span style={{ fontSize: '10px', marginLeft: '4px', color: '#DC2626' }}>(Peak)</span>}
+                        </>
+                      ) : (
+                        `₹${station.price_per_kwh}/kWh`
+                      )}
+                    </div>
                     {station.predicted_wait_time_minutes && (
                       <div style={{ color: '#D97706' }}>
                         ⏳ Wait: ~{station.predicted_wait_time_minutes} min
@@ -331,6 +351,35 @@ const StationRecommender = ({
                     }}
                   >
                     Select
+                  </button>
+                  <button
+                    className="btn flex-fill"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        const response = await axios.post(`${API_BASE_URL}/stations/${station.id}/book`, {
+                          station_id: station.id,
+                          time_slot: new Date().toISOString(),
+                          duration_minutes: 30
+                        });
+                        alert(response.data.message);
+                        // Ideally we'd refresh the stations list here
+                        station.available_chargers = response.data.remaining_chargers;
+                      } catch (error) {
+                        alert('Failed to book slot: ' + (error.response?.data?.detail || error.message));
+                      }
+                    }}
+                    style={{
+                      background: '#10B981',
+                      color: 'white',
+                      fontSize: '0.8125rem',
+                      fontWeight: 600,
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: 'none'
+                    }}
+                  >
+                    Reserve Slot
                   </button>
                   <button
                     className="btn btn-outline flex-fill"

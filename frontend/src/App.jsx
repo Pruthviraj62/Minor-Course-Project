@@ -24,7 +24,8 @@ function App() {
     battery_capacity: 60,
     vehicle_model: 'Tesla Model 3',
     driving_conditions: 'normal',
-    speed: 60
+    speed: 60,
+    weather_condition: 'clear'
   });
   
   // Range prediction state

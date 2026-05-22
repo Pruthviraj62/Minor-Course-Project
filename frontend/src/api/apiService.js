@@ -13,6 +13,7 @@ export const stationAPI = {
   getAll: () => api.get('/stations'),
   getNearby: (latitude, longitude, radius = 10) => 
     api.get(`/stations/nearby?latitude=${latitude}&longitude=${longitude}&radius_km=${radius}`),
+  bookSlot: (stationId, data) => api.post(`/stations/${stationId}/book`, data),
 };
 
 export const predictAPI = {

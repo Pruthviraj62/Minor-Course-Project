@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet-routing-machine';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icon issue in React-Leaflet
@@ -30,6 +31,18 @@ const userLocationIcon = new L.Icon({
   popupAnchor: [0, -12],
 });
 
+// Helper function to calculate distance
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
 // Component to handle map clicks
 function LocationPicker({ onLocationSelect }) {
   useMapEvents({
@@ -43,22 +56,58 @@ function LocationPicker({ onLocationSelect }) {
   return null;
 }
 
-// Component to draw route line
-function RouteLine({ start, end }) {
-  const map = useMapEvents({});
-  
-  if (!start || !end) return null;
-  
-  const polyline = L.polyline([
-    [start.lat, start.lng],
-    [end.lat, end.lng]
-  ], {
-    color: '#00d9ff',
-    weight: 4,
-    opacity: 0.7,
-    dashArray: '10, 10',
-  }).addTo(map);
-  
+// Enhanced Route Component using Leaflet Routing Machine
+function SmartRouting({ start, end }) {
+  const map = useMap();
+  const routingControlRef = useRef(null);
+
+  useEffect(() => {
+    if (!map || !start || !end) return;
+
+    // Clean up previous routing control
+    if (routingControlRef.current) {
+      map.removeControl(routingControlRef.current);
+    }
+
+    try {
+      // Create routing control with A*/Dijkstra based OSRM engine
+      // showAlternatives: true will show 2 paths as requested
+      const routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(start.lat, start.lng),
+          L.latLng(end.lat, end.lng)
+        ],
+        lineOptions: {
+          styles: [
+            { color: '#00d9ff', opacity: 0.8, weight: 6 }, // Primary path
+            { color: '#ff6b6b', opacity: 0.6, weight: 4, dashArray: '5, 10' } // Alternative path
+          ],
+          extendToWaypoints: true,
+          missingRouteTolerance: 100
+        },
+        routeWhileDragging: false,
+        addWaypoints: false,
+        fitSelectedRoutes: true,
+        showAlternatives: true,
+        altLineOptions: {
+          styles: [{ color: '#ff6b6b', opacity: 0.6, weight: 4, dashArray: '5, 10' }]
+        },
+        // Custom formatter to show algorithm info
+        summaryTemplate: '<h2>{name}</h2><h3>{distance}, {time}</h3><p style="font-size: 0.7rem; color: #888;">Algorithm: Dijkstra/A* Optimized</p>'
+      }).addTo(map);
+
+      routingControlRef.current = routingControl;
+    } catch (error) {
+      console.error("Routing Error:", error);
+    }
+
+    return () => {
+      if (routingControlRef.current) {
+        map.removeControl(routingControlRef.current);
+      }
+    };
+  }, [map, start, end]);
+
   return null;
 }
 
@@ -70,10 +119,30 @@ const SmartMap = ({
   onStationSelect 
 }) => {
   const [clickedLocation, setClickedLocation] = useState(null);
+  const [nearestStation, setNearestStation] = useState(null);
   
-  // Default to Mumbai if no location provided
-  const defaultCenter = userLocation || { lat: 19.0760, lng: 72.8777 };
-  const zoom = 12;
+  // Default to Mumbai center if no location provided
+  const defaultCenter = { lat: 18.5204, lng: 73.8567 }; // Moved center towards Pune/Sangli/Kolhapur
+  const zoom = 8;
+
+  // Find nearest station when user location or clicked location changes
+  useEffect(() => {
+    const loc = clickedLocation || userLocation;
+    if (loc && stations.length > 0) {
+      let minDistance = Infinity;
+      let nearest = null;
+      
+      stations.forEach(station => {
+        const dist = calculateDistance(loc.lat, loc.lng, station.latitude, station.longitude);
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearest = station;
+        }
+      });
+      
+      setNearestStation(nearest);
+    }
+  }, [clickedLocation, userLocation, stations]);
 
   const handleMapClick = (location) => {
     setClickedLocation(location);
@@ -84,8 +153,12 @@ const SmartMap = ({
     onStationSelect(station);
   };
 
+  // Determine which station to route to
+  const targetStation = selectedStation || nearestStation;
+  const startPoint = clickedLocation || userLocation;
+
   return (
-    <div className="smart-map-container" style={{ width: '100%', height: '100%', minHeight: '500px' }}>
+    <div className="smart-map-container" style={{ width: '100%', height: '100%', minHeight: '600px', position: 'relative' }}>
       <MapContainer 
         center={[defaultCenter.lat, defaultCenter.lng]} 
         zoom={zoom} 
@@ -98,37 +171,32 @@ const SmartMap = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Click handler */}
         <LocationPicker onLocationSelect={handleMapClick} />
         
-        {/* User location marker */}
         {userLocation && (
           <Marker 
             position={[userLocation.lat, userLocation.lng]}
             icon={userLocationIcon}
           >
             <Popup>
-              <strong>Your Location</strong><br />
-              Click anywhere to change
+              <strong>Your Location</strong>
             </Popup>
           </Marker>
         )}
         
-        {/* Clicked location marker */}
         {clickedLocation && (
           <Marker 
             position={[clickedLocation.lat, clickedLocation.lng]}
             icon={new L.Icon.Default()}
           >
             <Popup>
-              <strong>Selected Location</strong><br />
+              <strong>Selected Point</strong><br />
               Lat: {clickedLocation.lat.toFixed(4)}<br />
               Lng: {clickedLocation.lng.toFixed(4)}
             </Popup>
           </Marker>
         )}
         
-        {/* Charging station markers */}
         {stations.map((station) => (
           <Marker
             key={station.id}
@@ -139,113 +207,95 @@ const SmartMap = ({
             }}
           >
             <Popup>
-              <div style={{ 
-                minWidth: '260px',
-                padding: '12px',
-                fontFamily: 'Inter, sans-serif'
-              }}>
-                <h4 style={{ 
-                  margin: '0 0 10px 0', 
-                  color: 'var(--text-primary)',
-                  fontSize: '1rem',
-                  fontWeight: 600
-                }}>
-                  {station.name}
-                </h4>
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  <div style={{ marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>🔌</span>
-                    <strong style={{ color: 'var(--text-primary)' }}>{station.available_chargers}/{station.total_chargers}</strong> available
-                  </div>
-                  <div style={{ marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>⚡</span>
-                    {Array.isArray(station.power_kw) ? Math.max(...station.power_kw) : station.power_kw} kW
-                  </div>
-                  <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>💰</span>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>₹{station.price_per_kwh}/kWh</span>
-                  </div>
-                  {station.distance_km && (
-                    <div style={{ 
-                      marginTop: '10px', 
-                      padding: '8px', 
-                      background: 'rgba(162, 210, 255, 0.1)',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      fontSize: '0.8125rem',
-                      color: '#2563EB'
-                    }}>
-                      📍 {station.distance_km.toFixed(1)} km away
-                    </div>
-                  )}
-                  <div style={{ marginTop: '10px' }}>
-                    <button 
-                      onClick={() => onStationSelect(station)}
-                      style={{
-                        background: 'var(--accent-primary)',
-                        border: 'none',
-                        color: 'var(--text-primary)',
-                        padding: '8px 16px',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '0.8125rem',
-                        width: '100%',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.background = 'var(--accent-hover)';
-                        e.target.style.transform = 'translateY(-2px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.background = 'var(--accent-primary)';
-                        e.target.style.transform = 'translateY(0)';
-                      }}
-                    >
-                      View Details
-                    </button>
-                  </div>
+              <div style={{ minWidth: '240px', padding: '10px' }}>
+                <h4 style={{ margin: '0 0 5px 0' }}>{station.name}</h4>
+                <p style={{ fontSize: '0.8rem', margin: '5px 0' }}>{station.address}</p>
+                <div style={{ fontSize: '0.85rem' }}>
+                  <strong>⚡ {station.available_chargers}/{station.total_chargers} available</strong><br />
+                  💰 ₹{station.price_per_kwh}/kWh
                 </div>
+                <button 
+                  onClick={() => onStationSelect(station)}
+                  style={{
+                    marginTop: '10px',
+                    width: '100%',
+                    padding: '8px',
+                    background: '#00d9ff',
+                    border: 'none',
+                    borderRadius: '5px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Select Station
+                </button>
               </div>
             </Popup>
           </Marker>
         ))}
         
-        {/* Route line from user location to selected station */}
-        {userLocation && selectedStation && (
-          <RouteLine start={userLocation} end={{ lat: selectedStation.latitude, lng: selectedStation.longitude }} />
+        {/* Actual road routing with two paths */}
+        {startPoint && targetStation && (
+          <SmartRouting 
+            start={startPoint} 
+            end={{ lat: targetStation.latitude, lng: targetStation.longitude }} 
+          />
         )}
       </MapContainer>
       
-      {/* Map info overlay */}
+      {/* Legend and Info Overlay */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        background: 'rgba(10, 10, 15, 0.9)',
+        color: 'white',
+        padding: '15px',
+        borderRadius: '12px',
+        border: '1px solid rgba(0, 217, 255, 0.3)',
+        zIndex: 1000,
+        fontSize: '0.85rem',
+        maxWidth: '220px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+      }}>
+        <div style={{ fontWeight: 'bold', color: '#00d9ff', marginBottom: '10px', borderBottom: '1px solid #333', paddingBottom: '5px' }}>
+          Navigation Engine
+        </div>
+        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+          <div style={{ width: '12px', height: '12px', background: '#00d9ff', marginRight: '8px', borderRadius: '2px' }}></div>
+          Shortest Path (Primary)
+        </div>
+        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+          <div style={{ width: '12px', height: '12px', background: '#ff6b6b', marginRight: '8px', borderRadius: '2px', border: '1px dashed white' }}></div>
+          Alternative Path
+        </div>
+        <div style={{ marginTop: '10px', fontSize: '0.75rem', opacity: 0.8, fontStyle: 'italic' }}>
+          * Paths calculated using OSRM engine with Dijkstra/A* optimization for real road networks.
+        </div>
+        {targetStation && (
+          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #333' }}>
+            <span style={{ color: '#aaa' }}>Target:</span><br />
+            <span style={{ fontWeight: 600 }}>{targetStation.name}</span>
+          </div>
+        )}
+      </div>
+
       <div style={{
         position: 'absolute',
         bottom: '20px',
         left: '20px',
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        padding: '14px 18px',
-        borderRadius: '10px',
-        border: '1px solid var(--border-light)',
-        boxShadow: 'var(--shadow-lg)',
+        background: 'rgba(10, 10, 15, 0.8)',
+        color: 'white',
+        padding: '10px 15px',
+        borderRadius: '8px',
         zIndex: 1000,
-        fontSize: '0.8125rem',
-        minWidth: '180px'
+        fontSize: '0.8rem'
       }}>
-        <div style={{ 
-          color: 'var(--accent-primary)', 
-          fontWeight: 700, 
-          marginBottom: '6px',
-          fontSize: '0.875rem'
-        }}>
-          🗺️ Interactive Map
-        </div>
-        <div style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-          Click anywhere to select location
-        </div>
+        📍 Click map to find nearest station
       </div>
     </div>
   );
 };
 
 export default SmartMap;
+

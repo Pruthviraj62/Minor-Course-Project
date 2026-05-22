@@ -55,6 +55,7 @@ class RangePredictionRequest(BaseModel):
     battery_capacity: float
     vehicle_model: str
     driving_conditions: Optional[str] = "normal"
+    weather_condition: Optional[str] = "clear"
 
 class StationRequest(BaseModel):
     location: Location
@@ -72,6 +73,12 @@ class RecommendationRequest(BaseModel):
     vehicle_model: str
     speed: Optional[float] = 60.0
     driving_conditions: Optional[str] = "normal"
+    weather_condition: Optional[str] = "clear"
+
+class BookingRequest(BaseModel):
+    station_id: int
+    time_slot: str
+    duration_minutes: int
 
 # ============== Load Real Data ==============
 
@@ -157,7 +164,14 @@ async def get_nearby_stations(
 
 @router.post("/predict/range")
 async def predict_range(request: RangePredictionRequest):
-    """Predict how far the EV can travel with current charge using ML model"""
+    """Predict how far the EV can travel with current charge using ML model, factoring in weather"""
+    weather_multiplier = {
+        "clear": 1.0,
+        "rain": 0.88,
+        "cold": 0.80,
+        "hot": 0.95
+    }.get(request.weather_condition.lower(), 1.0)
+
     if MODELS_LOADED and range_model is not None:
         try:
             driving_conditions = request.driving_conditions.lower()
@@ -182,13 +196,19 @@ async def predict_range(request: RangePredictionRequest):
         efficiency = base_efficiency.get(request.driving_conditions, 6.5)
         predicted_range = (request.battery_level / 100) * request.battery_capacity * efficiency
     
+    # Apply weather penalty
+    efficiency *= weather_multiplier
+    predicted_range *= weather_multiplier
+    
     return {
         "vehicle_model": request.vehicle_model,
         "battery_level": request.battery_level,
         "battery_capacity": request.battery_capacity,
         "driving_conditions": request.driving_conditions,
+        "weather_condition": request.weather_condition,
         "predicted_range_km": round(predicted_range, 2),
         "efficiency_km_per_kwh": round(efficiency, 2),
+        "weather_impact_percent": round((1.0 - weather_multiplier) * 100, 1),
         "model_used": MODELS_LOADED,
         "timestamp": datetime.now().isoformat()
     }
@@ -414,8 +434,37 @@ async def get_grid_load():
 
 @router.get("/stations")
 async def get_all_stations():
-    """Get all charging stations for map visualization"""
+    """Get all charging stations for map visualization, including dynamic pricing"""
+    grid_data = get_grid_load_data()
+    price_multiplier = grid_data["price_multiplier"]
+    
+    stations_with_dynamic_price = []
+    for station in MOCK_STATIONS:
+        st_copy = station.copy()
+        st_copy["dynamic_price_per_kwh"] = round(station["price_per_kwh"] * price_multiplier, 2)
+        st_copy["is_peak_pricing"] = price_multiplier > 1.0
+        stations_with_dynamic_price.append(st_copy)
+        
     return {
-        "count": len(MOCK_STATIONS),
-        "stations": MOCK_STATIONS
+        "count": len(stations_with_dynamic_price),
+        "stations": stations_with_dynamic_price
     }
+
+@router.post("/stations/{station_id}/book")
+async def book_station_slot(station_id: int, request: BookingRequest):
+    """Mock booking endpoint to reserve a slot and reduce available chargers"""
+    for station in MOCK_STATIONS:
+        if station["id"] == station_id:
+            if station["available_chargers"] > 0:
+                station["available_chargers"] -= 1
+                return {
+                    "status": "success",
+                    "message": "Slot booked successfully",
+                    "station_name": station["name"],
+                    "remaining_chargers": station["available_chargers"],
+                    "booking_details": request.dict()
+                }
+            else:
+                raise HTTPException(status_code=400, detail="No chargers currently available at this station")
+    
+    raise HTTPException(status_code=404, detail="Station not found")
