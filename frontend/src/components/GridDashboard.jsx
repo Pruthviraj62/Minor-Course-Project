@@ -24,7 +24,7 @@ ChartJS.register(
   ArcElement
 );
 
-const GridDashboard = () => {
+const GridDashboard = ({ theme }) => {
   const [gridData, setGridData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,12 +82,12 @@ const GridDashboard = () => {
       {
         label: 'GRID_LOAD_VECTORS (%)',
         data: gridData.forecast_next_6h.map(h => h.load),
-        borderColor: '#00FF9D',
-        backgroundColor: 'rgba(0, 255, 157, 0.1)',
+        borderColor: theme === 'dark' ? '#00FF9D' : '#2563EB',
+        backgroundColor: theme === 'dark' ? 'rgba(0, 255, 157, 0.1)' : 'rgba(37, 99, 235, 0.1)',
         tension: 0.4,
         fill: true,
-        pointBackgroundColor: '#00FF9D',
-        pointBorderColor: '#050505',
+        pointBackgroundColor: theme === 'dark' ? '#00FF9D' : '#2563EB',
+        pointBorderColor: theme === 'dark' ? '#050505' : '#FFFFFF',
         pointBorderWidth: 2,
         pointRadius: 5,
         pointHoverRadius: 7
@@ -101,15 +101,15 @@ const GridDashboard = () => {
     plugins: {
       legend: {
         labels: { 
-          color: '#F0F4F8',
+          color: theme === 'dark' ? '#F0F4F8' : '#0F172A',
           font: { family: 'Space Mono', size: 10 }
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 17, 21, 0.95)',
-        titleColor: '#00FF9D',
-        bodyColor: '#F0F4F8',
-        borderColor: 'var(--accent-primary)',
+        backgroundColor: theme === 'dark' ? 'rgba(15, 17, 21, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: theme === 'dark' ? '#00FF9D' : '#2563EB',
+        bodyColor: theme === 'dark' ? '#F0F4F8' : '#0F172A',
+        borderColor: theme === 'dark' ? 'var(--accent-primary)' : 'var(--border-medium)',
         borderWidth: 1,
         padding: 12,
         displayColors: true,
@@ -122,15 +122,15 @@ const GridDashboard = () => {
         beginAtZero: true,
         max: 100,
         ticks: { 
-          color: '#64748B',
+          color: theme === 'dark' ? '#64748B' : '#475569',
           font: { family: 'Space Mono', size: 10 },
           callback: (v) => v + '%'
         },
-        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+        grid: { color: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' }
       },
       x: {
         ticks: { 
-          color: '#64748B',
+          color: theme === 'dark' ? '#64748B' : '#475569',
           font: { family: 'Space Mono', size: 10 }
         },
         grid: { display: false }

@@ -269,7 +269,9 @@ const SmartMap = ({
               fontSize: '0.75rem', 
               padding: '10px 24px', 
               borderRadius: '30px',
-              border: `1px solid ${showItinerary ? 'var(--accent-primary)' : 'var(--border-medium)'}`,
+              border: theme === 'light' 
+                ? `1px solid ${showItinerary ? 'var(--accent-primary)' : 'var(--border-medium)'}`
+                : `1px solid ${showItinerary ? 'var(--accent-primary)' : 'var(--border-accent)'}`,
               color: showItinerary ? 'var(--accent-primary)' : 'var(--text-primary)',
               background: 'var(--bg-secondary)',
               boxShadow: 'var(--shadow-lg)'
@@ -324,7 +326,14 @@ const SmartMap = ({
           <button 
             className="btn glass-panel btn-sm mono" 
             onClick={() => setShowLegend(true)}
-            style={{ fontSize: '0.6rem', alignSelf: 'flex-end', background: 'var(--bg-secondary)', border: '1px solid var(--border-medium)' }}
+            style={{ 
+              fontSize: '0.65rem', 
+              alignSelf: 'flex-end', 
+              background: 'var(--bg-secondary)', 
+              border: '1px solid var(--accent-primary)',
+              color: 'var(--accent-primary)',
+              padding: '6px 14px'
+            }}
           >
             [ SHOW_LEGEND ]
           </button>
@@ -336,7 +345,8 @@ const SmartMap = ({
             borderRadius: '16px',
             borderLeft: '4px solid var(--accent-primary)',
             position: 'relative',
-            width: '240px'
+            width: '240px',
+            border: theme === 'light' ? '1px solid var(--border-medium)' : '1px solid var(--border-accent)'
           }}>
             <button 
               onClick={() => setShowTargetBox(false)}
@@ -353,7 +363,14 @@ const SmartMap = ({
           <button 
             className="btn glass-panel btn-sm mono" 
             onClick={() => setShowTargetBox(true)}
-            style={{ fontSize: '0.6rem', alignSelf: 'flex-end', background: 'var(--bg-secondary)', border: '1px solid var(--border-medium)' }}
+            style={{ 
+              fontSize: '0.65rem', 
+              alignSelf: 'flex-end', 
+              background: 'var(--bg-secondary)', 
+              border: '1px solid var(--accent-primary)',
+              color: 'var(--accent-primary)',
+              padding: '6px 14px'
+            }}
           >
             [ SHOW_TARGET ]
           </button>

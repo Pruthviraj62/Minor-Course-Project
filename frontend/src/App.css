@@ -61,9 +61,9 @@
 
 /* Leaflet Routing Machine Overrides */
 .leaflet-routing-container {
-  background: rgba(15, 17, 21, 0.9) !important;
+  background: var(--bg-secondary) !important;
   backdrop-filter: blur(12px) !important;
-  border: 1px solid var(--border-accent) !important;
+  border: 1px solid var(--border-medium) !important;
   border-radius: 16px !important;
   color: var(--text-primary) !important;
   font-family: 'Space Mono', monospace !important;
@@ -75,29 +75,48 @@
   margin: 20px !important;
 }
 
+:root:not(.light) .leaflet-routing-container {
+  background: rgba(15, 17, 21, 0.9) !important;
+  border-color: var(--border-accent) !important;
+}
+
 .leaflet-routing-alt {
   background: transparent !important;
   border-bottom: 1px solid var(--border-medium) !important;
   padding: 12px 0 !important;
+  color: var(--text-primary) !important;
 }
 
 .leaflet-routing-alt:hover {
-  background: rgba(0, 255, 157, 0.05) !important;
+  background: var(--bg-accent) !important;
 }
 
 .leaflet-routing-alt h2 {
   color: var(--accent-primary) !important;
   font-size: 0.9rem !important;
   text-transform: uppercase !important;
+  margin-bottom: 4px !important;
 }
 
 .leaflet-routing-alt h3 {
-  color: var(--accent-secondary) !important;
+  color: var(--text-secondary) !important;
   font-size: 0.8rem !important;
 }
 
 .leaflet-routing-icon {
-  filter: invert(1) hue-rotate(90deg) !important; /* Make icons cyber-green */
+  filter: theme === 'dark' ? 'invert(1) hue-rotate(90deg)' : 'none'; /* This won't work in CSS, need specific selectors */
+}
+
+:root:not(.light) .leaflet-routing-icon {
+  filter: invert(1) hue-rotate(90deg) !important;
+}
+
+:root.light .leaflet-routing-icon {
+  filter: none !important;
+}
+
+.leaflet-routing-instruction-text {
+  color: var(--text-primary) !important;
 }
 
 /* Scrollbar for itinerary */

@@ -133,8 +133,8 @@ function App() {
         )}
 
         {activeView === 'grid' && (
-          <div className="container py-5">
-            <GridDashboard />
+          <div className="container-fluid" style={{ padding: 0 }}>
+            <GridDashboard theme={theme} />
           </div>
         )}
       </main>
