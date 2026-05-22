@@ -48,7 +48,8 @@ const StationRecommender = ({
     let score = 0;
     let breakdown = {};
 
-    const maxDistance = 20;
+    // Proximity Score - Increased maxDistance to 100km for regional relevance
+    const maxDistance = 100;
     const distanceScore = Math.max(0, (1 - distance / maxDistance) * 100);
     breakdown.distance = Math.round(distanceScore);
 
@@ -67,8 +68,8 @@ const StationRecommender = ({
     breakdown.grid = Math.round(gridScore);
 
     const currentPrice = station.dynamic_price_per_kwh || station.price_per_kwh;
-    const maxPrice = 20;
-    const priceScore = (1 - currentPrice / maxPrice) * 100;
+    const maxPrice = 25;
+    const priceScore = Math.max(0, (1 - currentPrice / maxPrice) * 100);
     breakdown.price = Math.round(priceScore);
 
     const maxSpeed = 250;
@@ -77,14 +78,19 @@ const StationRecommender = ({
       : station.power_kw) / maxSpeed * 100;
     breakdown.speed = Math.round(speedScore);
 
+    // WEIGHTED SCORING - Proximity (Distance) is now 50% of the total score
+    // This ensures Mumbai stations won't rank high if you are in Tasgaon
     score = (
-      distanceScore * 0.25 +
-      availabilityScore * 0.20 +
-      demandScore * 0.20 +
-      gridScore * 0.15 +
+      distanceScore * 0.50 +
+      availabilityScore * 0.15 +
+      demandScore * 0.10 +
+      gridScore * 0.10 +
       priceScore * 0.10 +
-      speedScore * 0.10
+      speedScore * 0.05
     );
+
+    // Apply a massive penalty for stations over 150km away to keep them at the bottom
+    if (distance > 150) score *= 0.1;
 
     return { total: Math.round(score), breakdown };
   };
@@ -117,59 +123,75 @@ const StationRecommender = ({
     if (!userLocation || !rangePrediction || stations.length === 0) return;
     
     setLoading(true);
-    await fetchGridData();
-    const demandPredictions = await fetchDemandPredictions();
-    
-    const processedStations = stations.map(station => {
-      const distance = calculateDistance(
-        userLocation.lat,
-        userLocation.lng,
-        station.latitude,
-        station.longitude
-      );
+    try {
+      await fetchGridData();
+      const demandPredictions = await fetchDemandPredictions();
       
-      const eta = calculateETA(distance, vehicleData.speed || 40);
-      
-      const arrivalBattery = calculateArrivalBattery(
-        distance,
-        rangePrediction.efficiency_km_per_kwh,
-        vehicleData.battery_level,
-        vehicleData.battery_capacity
-      );
-      
-      if (demandPredictions) {
-        const demandPred = demandPredictions.find(p => p.station_id === station.id);
-        if (demandPred) {
-          station.predicted_demand_percentage = demandPred.predicted_demand_percentage;
-          station.predicted_wait_time_minutes = demandPred.predicted_wait_time_minutes;
+      const processedStations = stations.map(station => {
+        // Create a copy to avoid mutating the original stations state
+        const st = { ...station };
+        
+        const distance = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          st.latitude,
+          st.longitude
+        );
+        
+        const eta = calculateETA(distance, vehicleData.speed || 40);
+        
+        const arrivalBattery = calculateArrivalBattery(
+          distance,
+          rangePrediction.efficiency_km_per_kwh,
+          vehicleData.battery_level,
+          vehicleData.battery_capacity
+        );
+        
+        if (demandPredictions) {
+          const demandPred = demandPredictions.find(p => p.station_id === st.id);
+          if (demandPred) {
+            st.predicted_demand_percentage = demandPred.predicted_demand_percentage;
+            st.predicted_wait_time_minutes = demandPred.predicted_wait_time_minutes;
+          }
         }
-      }
+        
+        const scoreData = calculateStationScore(st, distance, eta, arrivalBattery);
+        const co2Saved = calculateCO2Saved(distance);
+        
+        return {
+          ...st,
+          distance_km: distance,
+          eta_minutes: eta,
+          arrival_battery: arrivalBattery,
+          co2_saved_kg: co2Saved,
+          score: scoreData.total,
+          score_breakdown: scoreData.breakdown,
+          reachable: arrivalBattery > 10
+        };
+      });
       
-      const scoreData = calculateStationScore(station, distance, eta, arrivalBattery);
-      const co2Saved = calculateCO2Saved(distance);
-      
-      return {
-        ...station,
-        distance_km: distance,
-        eta_minutes: eta,
-        arrival_battery: arrivalBattery,
-        co2_saved_kg: co2Saved,
-        score: scoreData.total,
-        score_breakdown: scoreData.breakdown,
-        reachable: arrivalBattery > 10
-      };
-    });
-    
-    const reachable = processedStations
-      .filter(s => s.reachable)
-      .sort((a, b) => b.score - a.score);
-    
-    const unreachable = processedStations
-      .filter(s => !s.reachable)
-      .sort((a, b) => b.score - a.score);
-    
-    setRecommendations([...reachable, ...unreachable]);
-    setLoading(false);
+      // Strict Ranking Strategy
+      // 1. Closest and Reachable (< 50km)
+      const ultraLocal = processedStations
+        .filter(s => s.reachable && s.distance_km <= 50)
+        .sort((a, b) => b.score - a.score);
+        
+      // 2. Reachable within reasonable range (50km - 150km)
+      const regional = processedStations
+        .filter(s => s.reachable && s.distance_km > 50 && s.distance_km <= 150)
+        .sort((a, b) => b.score - a.score);
+        
+      // 3. Everything else (Far reachable or Unreachable)
+      const others = processedStations
+        .filter(s => !ultraLocal.find(l => l.id === s.id) && !regional.find(r => r.id === s.id))
+        .sort((a, b) => a.distance_km - b.distance_km); // Sort by distance for these
+        
+      setRecommendations([...ultraLocal, ...regional, ...others]);
+    } catch (err) {
+      console.error("Recommendation generation failed:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -233,18 +255,36 @@ const StationRecommender = ({
             : 'WAITING_FOR_LOC_SYNC...'}
         </div>
       )}
+{!loading && recommendations.length > 0 && (
+  <>
+    <div className="mb-4 mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
+      <span>LOC_SYNC: OK</span>
+      <span>{recommendations.filter(r => r.reachable).length} REACHABLE</span>
+    </div>
 
-      {!loading && recommendations.length > 0 && (
-        <>
-          <div className="mb-4 mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
-            STATUS: {recommendations.filter(r => r.reachable).length} STATIONS_IN_RANGE
-          </div>
+    <div className="stations-list">
+      {recommendations.map((station, index) => (
+        <React.Fragment key={station.id}>
+          {/* Category Header */}
+          {index === 0 && station.distance_km <= 50 && (
+            <div className="mono mb-3" style={{ fontSize: '0.65rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
+              &gt;&gt; PRIMARY_TARGETS_NEARBY
+            </div>
+          )}
+          {index > 0 && recommendations[index-1].distance_km <= 50 && station.distance_km > 50 && (
+            <div className="mono mt-5 mb-3" style={{ fontSize: '0.65rem', color: 'var(--warning)', fontWeight: 800 }}>
+              &gt;&gt; EXTENDED_RANGE_REGIONAL
+            </div>
+          )}
+          {index > 0 && recommendations[index-1].reachable && !station.reachable && (
+            <div className="mono mt-5 mb-3" style={{ fontSize: '0.65rem', color: 'var(--error)', fontWeight: 800 }}>
+              &gt;&gt; CRITICAL_OUT_OF_RANGE
+            </div>
+          )}
 
-          <div className="stations-list">
-            {recommendations.map((station, index) => (
-              <div
-                key={station.id}
-                className="station-list-item glass-card"
+          <div
+            className="station-list-item glass-card"
+...
                 style={{
                   padding: '20px',
                   marginBottom: '16px',
