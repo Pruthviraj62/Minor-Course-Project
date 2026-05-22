@@ -18,9 +18,13 @@ export const stationAPI = {
 
 export const predictAPI = {
   range: (data) => api.post('/predict/range', data),
-  demand: (location, radius = 10) => api.post('/predict/demand', { location, radius }),
-};
 
+  demand: (location, radius = 10) => 
+    api.post('/predict/demand', { 
+      location,
+      radius_km: radius
+    }),
+};
 export const scheduleAPI = {
   getOptimal: (data) => api.post('/schedule/optimal', data),
 };
