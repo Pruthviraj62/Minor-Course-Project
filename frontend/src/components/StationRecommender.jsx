@@ -204,7 +204,7 @@ const StationRecommender = ({
   };
 
   return (
-    <div className="station-recommender" style={{ background: 'var(--bg-secondary)', padding: '24px' }}>
+    <div className="station-recommender" style={{ background: 'var(--bg-secondary)', padding: '24px', color: 'var(--text-primary)' }}>
       <h3 className="mono" style={{ 
         fontSize: '1rem', 
         fontWeight: 800, 

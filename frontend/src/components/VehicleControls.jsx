@@ -71,7 +71,7 @@ const VehicleControls = ({
   const timeToEmpty = calculateTimeToEmpty();
 
   return (
-    <div className="vehicle-controls" style={{ background: 'var(--bg-secondary)', padding: '24px' }}>
+    <div className="vehicle-controls" style={{ background: 'var(--bg-secondary)', padding: '24px', color: 'var(--text-primary)' }}>
       <h3 className="mono" style={{ 
         fontSize: '1rem', 
         fontWeight: 800, 

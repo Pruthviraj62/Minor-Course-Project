@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Navbar = ({ activeView, setActiveView }) => {
+const Navbar = ({ activeView, setActiveView, theme, toggleTheme }) => {
   return (
     <nav className="navbar navbar-expand-lg">
       <div className="container-fluid px-4">
@@ -23,14 +23,24 @@ const Navbar = ({ activeView, setActiveView }) => {
           data-bs-target="#navbarNav"
           style={{ 
             borderColor: 'var(--border-medium)',
-            background: 'rgba(255,255,255,0.05)'
+            background: 'var(--bg-accent)'
           }}
         >
-          <span className="navbar-toggler-icon" style={{ filter: 'invert(1)' }}></span>
+          <span className="navbar-toggler-icon" style={{ filter: theme === 'dark' ? 'invert(1)' : 'none' }}></span>
         </button>
         
         <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-          <ul className="navbar-nav gap-3">
+          <ul className="navbar-nav gap-3 align-items-center">
+            <li className="nav-item">
+              <button 
+                onClick={toggleTheme}
+                className="btn btn-ghost mono"
+                style={{ fontSize: '1.2rem', padding: '8px' }}
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
+            </li>
             <li className="nav-item">
               <button
                 className={`nav-link mono ${activeView === 'map' || activeView === 'recommendations' ? 'active' : ''}`}

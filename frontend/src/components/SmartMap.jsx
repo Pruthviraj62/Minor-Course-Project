@@ -57,7 +57,7 @@ function LocationPicker({ onLocationSelect }) {
 }
 
 // Enhanced Route Component using Leaflet Routing Machine
-function SmartRouting({ start, end, showItinerary }) {
+function SmartRouting({ start, end, showItinerary, theme }) {
   const map = useMap();
   const routingControlRef = useRef(null);
 
@@ -69,6 +69,9 @@ function SmartRouting({ start, end, showItinerary }) {
       map.removeControl(routingControlRef.current);
     }
 
+    const primaryColor = theme === 'dark' ? '#00FF9D' : '#2563EB';
+    const altColor = theme === 'dark' ? '#00D9FF' : '#0EA5E9';
+
     try {
       const routingControl = L.Routing.control({
         waypoints: [
@@ -77,8 +80,8 @@ function SmartRouting({ start, end, showItinerary }) {
         ],
         lineOptions: {
           styles: [
-            { color: '#00FF9D', opacity: 0.8, weight: 6 }, // Cyber Green
-            { color: '#00D9FF', opacity: 0.6, weight: 4, dashArray: '5, 10' } // Cyan Alt
+            { color: primaryColor, opacity: 0.8, weight: 6 }, 
+            { color: altColor, opacity: 0.6, weight: 4, dashArray: '5, 10' }
           ],
           extendToWaypoints: true,
           missingRouteTolerance: 100
@@ -88,7 +91,7 @@ function SmartRouting({ start, end, showItinerary }) {
         fitSelectedRoutes: true,
         showAlternatives: true,
         altLineOptions: {
-          styles: [{ color: '#00D9FF', opacity: 0.6, weight: 4, dashArray: '5, 10' }]
+          styles: [{ color: altColor, opacity: 0.6, weight: 4, dashArray: '5, 10' }]
         },
         // Container for itinerary
         itineraryClassName: `routing-itinerary-container ${showItinerary ? '' : 'hidden'}`,
@@ -115,30 +118,48 @@ const SmartMap = ({
   userLocation, 
   onLocationSelect,
   selectedStation,
-  onStationSelect 
+  onStationSelect,
+  theme
 }) => {
   const [clickedLocation, setClickedLocation] = useState(null);
   const [nearestStation, setNearestStation] = useState(null);
   const [showItinerary, setShowItinerary] = useState(false);
+  const [showLegend, setShowLegend] = useState(true);
+  const [showTargetBox, setShowTargetBox] = useState(true);
   
   // Default center towards Maharashtra hub
   const defaultCenter = { lat: 17.5, lng: 74.5 }; 
   const zoom = 8;
 
-  // Find nearest station logic
+  // Find nearest station logic - IMPROVED: Priority to available stations
   useEffect(() => {
     const loc = clickedLocation || userLocation;
     if (loc && stations.length > 0) {
       let minDistance = Infinity;
       let nearest = null;
       
+      // First pass: Nearest available station
       stations.forEach(station => {
-        const dist = calculateDistance(loc.lat, loc.lng, station.latitude, station.longitude);
-        if (dist < minDistance) {
-          minDistance = dist;
-          nearest = station;
+        if (station.available_chargers > 0) {
+          const dist = calculateDistance(loc.lat, loc.lng, station.latitude, station.longitude);
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearest = station;
+          }
         }
       });
+      
+      // Second pass: If none available, absolute nearest
+      if (!nearest) {
+        minDistance = Infinity;
+        stations.forEach(station => {
+          const dist = calculateDistance(loc.lat, loc.lng, station.latitude, station.longitude);
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearest = station;
+          }
+        });
+      }
       
       setNearestStation(nearest);
     }
@@ -176,7 +197,10 @@ const SmartMap = ({
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url={theme === 'dark' 
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          }
         />
         
         <LocationPicker onLocationSelect={handleMapClick} />
@@ -202,8 +226,8 @@ const SmartMap = ({
           >
             <Popup>
               <div style={{ minWidth: '240px', padding: '5px' }}>
-                <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-primary)' }}>{station.name}</h4>
-                <div className="mono" style={{ fontSize: '0.8rem', marginBottom: '12px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: theme === 'dark' ? 'var(--accent-primary)' : 'var(--accent-hover)' }}>{station.name}</h4>
+                <div className="mono" style={{ fontSize: '0.8rem', marginBottom: '12px', color: 'var(--text-primary)' }}>
                   ⚡ {station.available_chargers}/{station.total_chargers} Free<br />
                   💰 ₹{station.dynamic_price_per_kwh || station.price_per_kwh}/kWh
                 </div>
@@ -224,10 +248,38 @@ const SmartMap = ({
             start={startPoint} 
             end={{ lat: targetStation.latitude, lng: targetStation.longitude }}
             showItinerary={showItinerary}
+            theme={theme}
           />
         )}
       </MapContainer>
       
+      {/* Floating Action Bar for Directions */}
+      {startPoint && targetStation && (
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000
+        }}>
+          <button 
+            onClick={() => setShowItinerary(!showItinerary)}
+            className="btn glass-panel mono"
+            style={{ 
+              fontSize: '0.75rem', 
+              padding: '10px 24px', 
+              borderRadius: '30px',
+              border: `1px solid ${showItinerary ? 'var(--accent-primary)' : 'var(--border-medium)'}`,
+              color: showItinerary ? 'var(--accent-primary)' : 'var(--text-primary)',
+              background: 'var(--bg-secondary)',
+              boxShadow: 'var(--shadow-lg)'
+            }}
+          >
+            {showItinerary ? '🛑 HIDE DIRECTIONS' : '🧭 SHOW DIRECTIONS'}
+          </button>
+        </div>
+      )}
+
       {/* Dynamic Controls Overlay */}
       <div style={{
         position: 'absolute',
@@ -239,43 +291,72 @@ const SmartMap = ({
         zIndex: 1000
       }}>
         {/* Navigation Legend */}
-        <div className="glass-panel" style={{
-          padding: '18px',
-          borderRadius: '16px',
-          fontSize: '0.8rem',
-          width: '240px',
-          border: '1px solid var(--border-accent)'
-        }}>
-          <div className="mono" style={{ fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '12px', textTransform: 'uppercase', fontSize: '0.7rem' }}>
-            // Navigation Engine
+        {showLegend && (
+          <div className="glass-panel slide-up" style={{
+            padding: '18px',
+            borderRadius: '16px',
+            fontSize: '0.8rem',
+            width: '240px',
+            border: theme === 'dark' ? '1px solid var(--border-accent)' : '1px solid var(--border-medium)',
+            position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShowLegend(false)}
+              style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
+            >
+              ×
+            </button>
+            <div className="mono" style={{ fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '12px', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+              // Navigation Engine
+            </div>
+            <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: '14px', height: '14px', background: theme === 'dark' ? 'var(--accent-primary)' : '#2563EB', marginRight: '10px', borderRadius: '3px', boxShadow: theme === 'dark' ? '0 0 10px var(--accent-primary)' : 'none' }}></div>
+              <span className="mono" style={{ color: 'var(--text-primary)' }}>Shortest Path</span>
+            </div>
+            <div style={{ marginBottom: '5px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ width: '14px', height: '14px', background: theme === 'dark' ? 'var(--accent-secondary)' : '#0EA5E9', marginRight: '10px', borderRadius: '3px', border: '1px dashed white' }}></div>
+              <span className="mono" style={{ color: 'var(--text-primary)' }}>Alternative</span>
+            </div>
           </div>
-          <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: '14px', height: '14px', background: 'var(--accent-primary)', marginRight: '10px', borderRadius: '3px', boxShadow: '0 0 10px var(--accent-primary)' }}></div>
-            <span className="mono">Shortest Path</span>
-          </div>
-          <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
-            <div style={{ width: '14px', height: '14px', background: 'var(--accent-secondary)', marginRight: '10px', borderRadius: '3px', border: '1px dashed white' }}></div>
-            <span className="mono">Alternative</span>
-          </div>
-          
-          <button 
-            onClick={() => setShowItinerary(!showItinerary)}
-            className="btn btn-outline w-100 btn-sm"
-            style={{ fontSize: '0.7rem', padding: '8px' }}
-          >
-            {showItinerary ? 'Hide Directions' : 'Show Directions'}
-          </button>
-        </div>
+        )}
 
-        {targetStation && (
+        {!showLegend && (
+          <button 
+            className="btn glass-panel btn-sm mono" 
+            onClick={() => setShowLegend(true)}
+            style={{ fontSize: '0.6rem', alignSelf: 'flex-end', background: 'var(--bg-secondary)', border: '1px solid var(--border-medium)' }}
+          >
+            [ SHOW_LEGEND ]
+          </button>
+        )}
+
+        {targetStation && showTargetBox && (
           <div className="glass-panel slide-up" style={{
             padding: '14px 18px',
             borderRadius: '16px',
-            borderLeft: '4px solid var(--accent-primary)'
+            borderLeft: '4px solid var(--accent-primary)',
+            position: 'relative',
+            width: '240px'
           }}>
+            <button 
+              onClick={() => setShowTargetBox(false)}
+              style={{ position: 'absolute', top: '8px', right: '10px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              ×
+            </button>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase' }} className="mono">Active Target</div>
-            <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '4px' }}>{targetStation.name}</div>
+            <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '4px', color: 'var(--text-primary)' }}>{targetStation.name}</div>
           </div>
+        )}
+
+        {targetStation && !showTargetBox && (
+          <button 
+            className="btn glass-panel btn-sm mono" 
+            onClick={() => setShowTargetBox(true)}
+            style={{ fontSize: '0.6rem', alignSelf: 'flex-end', background: 'var(--bg-secondary)', border: '1px solid var(--border-medium)' }}
+          >
+            [ SHOW_TARGET ]
+          </button>
         )}
       </div>
 
@@ -283,7 +364,7 @@ const SmartMap = ({
         position: 'absolute',
         bottom: '20px',
         left: '20px',
-        background: 'rgba(0,0,0,0.7)',
+        background: theme === 'dark' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)',
         color: 'var(--accent-primary)',
         padding: '8px 12px',
         borderRadius: '6px',

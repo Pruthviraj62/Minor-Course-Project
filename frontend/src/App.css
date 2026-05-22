@@ -135,17 +135,31 @@
 
 /* Navbar Enhancements */
 .navbar {
-  background: rgba(15, 17, 21, 0.85) !important;
+  background: var(--bg-secondary) !important;
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-medium);
   height: 80px;
 }
 
+:root:not(.light) .navbar {
+  background: rgba(15, 17, 21, 0.85) !important;
+}
+
 .nav-link.active {
   color: var(--accent-primary) !important;
-  background: rgba(0, 255, 157, 0.05);
+  background: var(--bg-accent);
   box-shadow: inset 0 -2px 0 var(--accent-primary);
 }
+
+/* Score Dynamic Colors */
+.Excellent { color: var(--success) !important; text-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+.Good { color: var(--accent-secondary) !important; }
+.Fair { color: var(--warning) !important; }
+.Poor { color: var(--error) !important; }
+
+:root.light .Excellent { text-shadow: none; font-weight: 800; }
+:root.light .Good { font-weight: 800; }
+
 * {
   transition-property: background-color, border-color, box-shadow;
   transition-duration: var(--transition-base);

@@ -14,6 +14,18 @@ function App() {
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   
   // User location state
   const [userLocation, setUserLocation] = useState(null);
@@ -71,7 +83,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <Navbar activeView={activeView} setActiveView={setActiveView} />
+      <Navbar activeView={activeView} setActiveView={setActiveView} theme={theme} toggleTheme={toggleTheme} />
 
       <main className="main-content">
         {error && (
@@ -102,6 +114,7 @@ function App() {
                 onLocationSelect={handleLocationSelect}
                 selectedStation={selectedStation}
                 onStationSelect={handleStationSelect}
+                theme={theme}
               />
             </div>
 
