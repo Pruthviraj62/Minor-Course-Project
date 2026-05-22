@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
+import LandingPage from './LandingPage';
 import SmartMap from './components/SmartMap';
 import VehicleControls from './components/VehicleControls';
 import StationRecommender from './components/StationRecommender';
@@ -10,6 +11,7 @@ import './App.css';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
 
 function App() {
+  const [view, setView] = useState('landing'); // 'landing' or 'dashboard'
   const [activeView, setActiveView] = useState('map');
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,9 +83,19 @@ function App() {
     setActiveView('recommendations');
   };
 
+  if (view === 'landing') {
+    return <LandingPage onGetStarted={() => setView('dashboard')} />;
+  }
+
   return (
     <div className="app-container">
-      <Navbar activeView={activeView} setActiveView={setActiveView} theme={theme} toggleTheme={toggleTheme} />
+      <Navbar 
+        activeView={activeView} 
+        setActiveView={setActiveView} 
+        theme={theme} 
+        toggleTheme={toggleTheme} 
+        onBack={() => setView('landing')}
+      />
 
       <main className="main-content">
         {error && (

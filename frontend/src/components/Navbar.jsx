@@ -1,20 +1,33 @@
 import React from 'react';
 
-const Navbar = ({ activeView, setActiveView, theme, toggleTheme }) => {
+const Navbar = ({ activeView, setActiveView, theme, toggleTheme, onBack }) => {
   return (
     <nav className="navbar navbar-expand-lg">
       <div className="container-fluid px-4">
-        <a className="navbar-brand mono" href="#" style={{ 
-          fontWeight: 900, 
-          fontSize: '1.25rem',
-          letterSpacing: '1px',
-          color: 'var(--accent-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <span style={{ fontSize: '1.5rem' }}>⚡</span> EV_SYNC_CORE
-        </a>
+        <div className="d-flex align-items-center gap-3">
+          {onBack && (
+            <button 
+              onClick={onBack}
+              className="btn btn-ghost mono"
+              style={{ fontSize: '1.2rem', padding: '8px' }}
+              title="Return to Landing Page"
+            >
+              ⬅️
+            </button>
+          )}
+          <a className="navbar-brand mono" href="#" style={{ 
+            fontWeight: 900, 
+            fontSize: '1.25rem',
+            letterSpacing: '1px',
+            color: 'var(--accent-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            margin: 0
+          }}>
+            <span style={{ fontSize: '1.5rem' }}>⚡</span> EV_SYNC_CORE
+          </a>
+        </div>
         
         <button 
           className="navbar-toggler" 

@@ -200,6 +200,17 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--accent-primary);
 }
 
+.btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-accent);
+  color: var(--accent-primary);
+}
+
 /* Input Refinement */
 .form-control, .form-select {
   background: var(--bg-accent);
