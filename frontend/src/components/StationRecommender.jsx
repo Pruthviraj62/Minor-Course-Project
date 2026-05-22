@@ -255,188 +255,189 @@ const StationRecommender = ({
             : 'WAITING_FOR_LOC_SYNC...'}
         </div>
       )}
-{!loading && recommendations.length > 0 && (
-  <>
-    <div className="mb-4 mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
-      <span>LOC_SYNC: OK</span>
-      <span>{recommendations.filter(r => r.reachable).length} REACHABLE</span>
-    </div>
 
-    <div className="stations-list">
-      {recommendations.map((station, index) => (
-        <React.Fragment key={station.id}>
-          {/* Category Header */}
-          {index === 0 && station.distance_km <= 50 && (
-            <div className="mono mb-3" style={{ fontSize: '0.65rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
-              &gt;&gt; PRIMARY_TARGETS_NEARBY
-            </div>
-          )}
-          {index > 0 && recommendations[index-1].distance_km <= 50 && station.distance_km > 50 && (
-            <div className="mono mt-5 mb-3" style={{ fontSize: '0.65rem', color: 'var(--warning)', fontWeight: 800 }}>
-              &gt;&gt; EXTENDED_RANGE_REGIONAL
-            </div>
-          )}
-          {index > 0 && recommendations[index-1].reachable && !station.reachable && (
-            <div className="mono mt-5 mb-3" style={{ fontSize: '0.65rem', color: 'var(--error)', fontWeight: 800 }}>
-              &gt;&gt; CRITICAL_OUT_OF_RANGE
-            </div>
-          )}
+      {!loading && recommendations.length > 0 && (
+        <>
+          <div className="mb-4 mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between' }}>
+            <span>LOC_SYNC: OK</span>
+            <span>{recommendations.filter(r => r.reachable).length} REACHABLE</span>
+          </div>
 
-          <div
-            className="station-list-item glass-card"
-...
-                style={{
-                  padding: '20px',
-                  marginBottom: '16px',
-                  borderRadius: '16px',
-                  border: selectedStation?.id === station.id
-                    ? '1.5px solid var(--accent-primary)'
-                    : '1px solid var(--border-light)',
-                  opacity: station.reachable ? 1 : 0.5,
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-                onClick={() => onStationSelect(station)}
-              >
-                {/* Visual Accent */}
-                {selectedStation?.id === station.id && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '4px',
-                    height: '100%',
-                    background: 'var(--accent-primary)',
-                    boxShadow: '0 0 10px var(--accent-primary)'
-                  }}></div>
+          <div className="stations-list">
+            {recommendations.map((station, index) => (
+              <React.Fragment key={station.id}>
+                {/* Category Header */}
+                {index === 0 && station.distance_km <= 50 && (
+                  <div className="mono mb-3" style={{ fontSize: '0.65rem', color: 'var(--accent-primary)', fontWeight: 800 }}>
+                    &gt;&gt; PRIMARY_TARGETS_NEARBY
+                  </div>
+                )}
+                {index > 0 && recommendations[index-1].distance_km <= 50 && station.distance_km > 50 && (
+                  <div className="mono mt-5 mb-3" style={{ fontSize: '0.65rem', color: 'var(--warning)', fontWeight: 800 }}>
+                    &gt;&gt; EXTENDED_RANGE_REGIONAL
+                  </div>
+                )}
+                {index > 0 && recommendations[index-1].reachable && !station.reachable && (
+                  <div className="mono mt-5 mb-3" style={{ fontSize: '0.65rem', color: 'var(--error)', fontWeight: 800 }}>
+                    &gt;&gt; CRITICAL_OUT_OF_RANGE
+                  </div>
                 )}
 
-                <div className="d-flex justify-content-between align-items-start mb-3">
-                  <div>
-                    <div className="mono" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                      ID_{station.id.toString().padStart(3, '0')} // {station.reachable ? 'OPTIMAL' : 'OUT_OF_RANGE'}
-                    </div>
-                    <h5 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 700 }}>
-                      {station.name.toUpperCase()}
-                    </h5>
-                  </div>
-                  <div className={`mono ${getScoreClass(station.score)}`} style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 800,
-                    padding: '4px 10px',
-                    borderRadius: '4px',
-                    background: 'rgba(0,0,0,0.3)'
-                  }}>
-                    {station.score}
-                  </div>
-                </div>
+                <div
+                  className="station-list-item glass-card"
+                  style={{
+                    padding: '20px',
+                    marginBottom: '16px',
+                    borderRadius: '16px',
+                    border: selectedStation?.id === station.id
+                      ? '1.5px solid var(--accent-primary)'
+                      : '1px solid var(--border-light)',
+                    opacity: station.reachable ? 1 : 0.5,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  onClick={() => onStationSelect(station)}
+                >
+                  {/* Visual Accent */}
+                  {selectedStation?.id === station.id && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '4px',
+                      height: '100%',
+                      background: 'var(--accent-primary)',
+                      boxShadow: '0 0 10px var(--accent-primary)'
+                    }}></div>
+                  )}
 
-                {/* Key Metrics Grid */}
-                <div className="row g-3 mb-4">
-                  <div className="col-4">
-                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>Dist</div>
-                    <div className="mono" style={{ color: 'var(--accent-secondary)', fontWeight: 700, fontSize: '0.9rem' }}>
-                      {station.distance_km.toFixed(1)}KM
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                      <div className="mono" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                        ID_{station.id.toString().padStart(3, '0')} // {station.reachable ? 'OPTIMAL' : 'OUT_OF_RANGE'}
+                      </div>
+                      <h5 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 700 }}>
+                        {station.name.toUpperCase()}
+                      </h5>
                     </div>
-                  </div>
-                  <div className="col-4">
-                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>ETA</div>
-                    <div className="mono" style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
-                      {station.eta_minutes}M
-                    </div>
-                  </div>
-                  <div className="col-4">
-                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>SOC_ARR</div>
-                    <div className="mono" style={{ 
-                      color: station.arrival_battery > 20 ? 'var(--accent-primary)' : 'var(--error)', 
-                      fontWeight: 700,
-                      fontSize: '0.9rem'
+                    <div className={`mono ${getScoreClass(station.score)}`} style={{
+                      fontSize: '0.9rem',
+                      fontWeight: 800,
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      background: 'rgba(0,0,0,0.3)'
                     }}>
-                      {station.arrival_battery.toFixed(0)}%
+                      {station.score}
                     </div>
                   </div>
-                </div>
 
-                {/* Specs Section */}
-                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
-                  <div className="d-flex justify-content-between mb-2">
-                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>LOAD_AVAIL</span>
-                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>{station.available_chargers}/{station.total_chargers} UNITS</span>
+                  {/* Key Metrics Grid */}
+                  <div className="row g-3 mb-4">
+                    <div className="col-4">
+                      <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>Dist</div>
+                      <div className="mono" style={{ color: 'var(--accent-secondary)', fontWeight: 700, fontSize: '0.9rem' }}>
+                        {station.distance_km.toFixed(1)}KM
+                      </div>
+                    </div>
+                    <div className="col-4">
+                      <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>ETA</div>
+                      <div className="mono" style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
+                        {station.eta_minutes}M
+                      </div>
+                    </div>
+                    <div className="col-4">
+                      <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>SOC_ARR</div>
+                      <div className="mono" style={{ 
+                        color: station.arrival_battery > 20 ? 'var(--accent-primary)' : 'var(--error)', 
+                        fontWeight: 700,
+                        fontSize: '0.9rem'
+                      }}>
+                        {station.arrival_battery.toFixed(0)}%
+                      </div>
+                    </div>
                   </div>
-                  <div className="d-flex justify-content-between mb-2">
-                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>GRID_PRICE</span>
-                    <span className="mono" style={{ fontSize: '0.7rem', color: station.is_peak_pricing ? 'var(--error)' : 'var(--accent-primary)' }}>
-                      ₹{station.dynamic_price_per_kwh?.toFixed(2) || station.price_per_kwh}/kWh {station.is_peak_pricing && '!!'}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between">
-                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>ECO_SAVED</span>
-                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 700 }}>
-                      +{station.co2_saved_kg}KG CO₂
-                    </span>
-                  </div>
-                </div>
 
-                {/* ML Diagnostics */}
-                <div className="mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-                  <div style={{ marginBottom: '4px' }}>[ ANALYSIS_COMPLETED ]</div>
-                  <div style={{ display: 'flex', gap: '10px', opacity: 0.8 }}>
-                    <span>AVAIL_{station.score_breakdown.availability}%</span>
-                    <span>DEMAND_{station.score_breakdown.demand}%</span>
-                    <span>GRID_{station.score_breakdown.grid}%</span>
+                  {/* Specs Section */}
+                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>LOAD_AVAIL</span>
+                      <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>{station.available_chargers}/{station.total_chargers} UNITS</span>
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>GRID_PRICE</span>
+                      <span className="mono" style={{ fontSize: '0.7rem', color: station.is_peak_pricing ? 'var(--error)' : 'var(--accent-primary)' }}>
+                        ₹{station.dynamic_price_per_kwh?.toFixed(2) || station.price_per_kwh}/kWh {station.is_peak_pricing && '!!'}
+                      </span>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>ECO_SAVED</span>
+                      <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 700 }}>
+                        +{station.co2_saved_kg}KG CO₂
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* ML Diagnostics */}
+                  <div className="mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                    <div style={{ marginBottom: '4px' }}>[ ANALYSIS_COMPLETED ]</div>
+                    <div style={{ display: 'flex', gap: '10px', opacity: 0.8 }}>
+                      <span>AVAIL_{station.score_breakdown.availability}%</span>
+                      <span>DEMAND_{station.score_breakdown.demand}%</span>
+                      <span>GRID_{station.score_breakdown.grid}%</span>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="d-flex gap-2">
+                    <button
+                      className="btn btn-primary flex-fill"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStationSelect(station);
+                      }}
+                      style={{ fontSize: '0.7rem', padding: '10px' }}
+                    >
+                      DEPLOY
+                    </button>
+                    <button
+                      className="btn flex-fill"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const response = await axios.post(`${API_BASE_URL}/stations/${station.id}/book`, {
+                            station_id: station.id,
+                            time_slot: new Date().toISOString(),
+                            duration_minutes: 30
+                          });
+                          alert(response.data.message);
+                          station.available_chargers = response.data.remaining_chargers;
+                        } catch (error) {
+                          alert('BOOKING_FAILED: ' + (error.response?.data?.detail || error.message));
+                        }
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid var(--accent-primary)',
+                        color: 'var(--accent-primary)',
+                        fontSize: '0.7rem',
+                        padding: '10px'
+                      }}
+                    >
+                      RESERVE
+                    </button>
+                    <button
+                      className="btn btn-outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}`, '_blank');
+                      }}
+                      style={{ padding: '10px' }}
+                    >
+                      ↗
+                    </button>
                   </div>
                 </div>
-
-                {/* Action buttons */}
-                <div className="d-flex gap-2">
-                  <button
-                    className="btn btn-primary flex-fill"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStationSelect(station);
-                    }}
-                    style={{ fontSize: '0.7rem', padding: '10px' }}
-                  >
-                    DEPLOY
-                  </button>
-                  <button
-                    className="btn flex-fill"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        const response = await axios.post(`${API_BASE_URL}/stations/${station.id}/book`, {
-                          station_id: station.id,
-                          time_slot: new Date().toISOString(),
-                          duration_minutes: 30
-                        });
-                        alert(response.data.message);
-                        station.available_chargers = response.data.remaining_chargers;
-                      } catch (error) {
-                        alert('BOOKING_FAILED: ' + (error.response?.data?.detail || error.message));
-                      }
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: '1px solid var(--accent-primary)',
-                      color: 'var(--accent-primary)',
-                      fontSize: '0.7rem',
-                      padding: '10px'
-                    }}
-                  >
-                    RESERVE
-                  </button>
-                  <button
-                    className="btn btn-outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}`, '_blank');
-                    }}
-                    style={{ padding: '10px' }}
-                  >
-                    ↗
-                  </button>
-                </div>
-              </div>
+              </React.Fragment>
             ))}
           </div>
         </>
