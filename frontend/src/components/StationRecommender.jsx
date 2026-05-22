@@ -204,153 +204,160 @@ const StationRecommender = ({
   };
 
   return (
-    <div className="station-recommender">
-      <h3 style={{ 
-        fontSize: '1.25rem', 
-        fontWeight: 600, 
+    <div className="station-recommender" style={{ background: 'var(--bg-secondary)', padding: '24px' }}>
+      <h3 className="mono" style={{ 
+        fontSize: '1rem', 
+        fontWeight: 800, 
         marginBottom: '24px',
-        color: 'var(--text-primary)'
+        color: 'var(--accent-primary)',
+        textTransform: 'uppercase',
+        letterSpacing: '2px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
       }}>
-        🏆 ML Recommendations
+        <span style={{ fontSize: '1.4rem' }}>🏆</span> ML_STATION_ANALYSIS
       </h3>
 
       {loading && (
-        <div className="text-center py-4" style={{ color: 'var(--text-muted)' }}>
-          <div className="spinner mb-3"></div>
-          <div>Calculating best stations...</div>
+        <div className="text-center py-5">
+          <div className="spinner mb-3" style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--accent-primary)' }}></div>
+          <div className="mono" style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)' }}>CALCULATING_OPTIMAL_VECTORS...</div>
         </div>
       )}
 
       {!loading && recommendations.length === 0 && (
-        <div className="text-center py-4" style={{ color: 'var(--text-muted)' }}>
+        <div className="text-center py-4 mono" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
           {stations.length === 0 
-            ? 'No stations available' 
-            : 'Select location and predict range to see recommendations'}
+            ? 'ERROR: NO_STATIONS_IN_MEMORY' 
+            : 'WAITING_FOR_LOC_SYNC...'}
         </div>
       )}
 
       {!loading && recommendations.length > 0 && (
         <>
-          <div className="mb-3" style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Found {recommendations.filter(r => r.reachable).length} reachable stations
+          <div className="mb-4 mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', borderBottom: '1px solid var(--border-light)', paddingBottom: '12px' }}>
+            STATUS: {recommendations.filter(r => r.reachable).length} STATIONS_IN_RANGE
           </div>
 
           <div className="stations-list">
             {recommendations.map((station, index) => (
               <div
                 key={station.id}
-                className="station-list-item"
+                className="station-list-item glass-card"
                 style={{
-                  background: selectedStation?.id === station.id 
-                    ? 'rgba(255, 179, 128, 0.05)' 
-                    : 'var(--bg-secondary)',
+                  padding: '20px',
+                  marginBottom: '16px',
+                  borderRadius: '16px',
                   border: selectedStation?.id === station.id
                     ? '1.5px solid var(--accent-primary)'
-                    : '1.5px solid var(--border-light)',
-                  opacity: station.reachable ? 1 : 0.7
+                    : '1px solid var(--border-light)',
+                  opacity: station.reachable ? 1 : 0.5,
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
                 onClick={() => onStationSelect(station)}
               >
-                {/* Header with score */}
+                {/* Visual Accent */}
+                {selectedStation?.id === station.id && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '4px',
+                    height: '100%',
+                    background: 'var(--accent-primary)',
+                    boxShadow: '0 0 10px var(--accent-primary)'
+                  }}></div>
+                )}
+
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                      #{index + 1} {station.reachable ? '✓ Reachable' : '⚠ Low Battery'}
+                    <div className="mono" style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                      ID_{station.id.toString().padStart(3, '0')} // {station.reachable ? 'OPTIMAL' : 'OUT_OF_RANGE'}
                     </div>
-                    <h5 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 600 }}>
-                      {station.name}
+                    <h5 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem', fontWeight: 700 }}>
+                      {station.name.toUpperCase()}
                     </h5>
                   </div>
-                  <div className={`score-badge ${getScoreClass(station.score)}`}>
+                  <div className={`mono ${getScoreClass(station.score)}`} style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: '4px',
+                    background: 'rgba(0,0,0,0.3)'
+                  }}>
                     {station.score}
                   </div>
                 </div>
 
-                {/* Key metrics */}
-                <div className="row g-2 mb-3" style={{ fontSize: '13px' }}>
+                {/* Key Metrics Grid */}
+                <div className="row g-3 mb-4">
                   <div className="col-4">
-                    <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginBottom: '2px' }}>Distance</div>
-                    <div style={{ color: '#2563EB', fontWeight: 600 }}>
-                      📍 {station.distance_km.toFixed(1)} km
+                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>Dist</div>
+                    <div className="mono" style={{ color: 'var(--accent-secondary)', fontWeight: 700, fontSize: '0.9rem' }}>
+                      {station.distance_km.toFixed(1)}KM
                     </div>
                   </div>
                   <div className="col-4">
-                    <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginBottom: '2px' }}>ETA</div>
-                    <div style={{ color: '#059669', fontWeight: 600 }}>
-                      ⏱️ {station.eta_minutes} min
+                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>ETA</div>
+                    <div className="mono" style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
+                      {station.eta_minutes}M
                     </div>
                   </div>
                   <div className="col-4">
-                    <div style={{ color: 'var(--text-muted)', fontSize: '10px', marginBottom: '2px' }}>Arrival</div>
-                    <div style={{ 
-                      color: station.arrival_battery > 20 ? '#059669' : '#DC2626', 
-                      fontWeight: 600 
+                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: '0.6rem', textTransform: 'uppercase' }}>SOC_ARR</div>
+                    <div className="mono" style={{ 
+                      color: station.arrival_battery > 20 ? 'var(--accent-primary)' : 'var(--error)', 
+                      fontWeight: 700,
+                      fontSize: '0.9rem'
                     }}>
-                      🔋 {station.arrival_battery.toFixed(0)}%
+                      {station.arrival_battery.toFixed(0)}%
                     </div>
                   </div>
                 </div>
 
-                {/* Station details */}
-                <div className="row g-2 mb-3" style={{ fontSize: '12px' }}>
-                  <div className="col-6">
-                    <div style={{ color: 'var(--text-secondary)' }}>🔌 {station.available_chargers}/{station.total_chargers} free</div>
-                    <div style={{ color: 'var(--text-secondary)' }}>⚡ {Array.isArray(station.power_kw) ? Math.max(...station.power_kw) : station.power_kw} kW</div>
-                    <div style={{ color: '#059669', marginTop: '4px', fontWeight: 600 }}>🌱 {station.co2_saved_kg} kg CO₂ saved</div>
+                {/* Specs Section */}
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>LOAD_AVAIL</span>
+                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-primary)' }}>{station.available_chargers}/{station.total_chargers} UNITS</span>
                   </div>
-                  <div className="col-6">
-                    <div style={{ color: 'var(--text-secondary)' }}>
-                      💰 {station.dynamic_price_per_kwh ? (
-                        <>
-                          <span style={{ fontWeight: station.is_peak_pricing ? 700 : 500, color: station.is_peak_pricing ? '#DC2626' : 'inherit' }}>
-                            ₹{station.dynamic_price_per_kwh.toFixed(2)}/kWh
-                          </span>
-                          {station.is_peak_pricing && <span style={{ fontSize: '10px', marginLeft: '4px', color: '#DC2626' }}>(Peak)</span>}
-                        </>
-                      ) : (
-                        `₹${station.price_per_kwh}/kWh`
-                      )}
-                    </div>
-                    {station.predicted_wait_time_minutes && (
-                      <div style={{ color: '#D97706' }}>
-                        ⏳ Wait: ~{station.predicted_wait_time_minutes} min
-                      </div>
-                    )}
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>GRID_PRICE</span>
+                    <span className="mono" style={{ fontSize: '0.7rem', color: station.is_peak_pricing ? 'var(--error)' : 'var(--accent-primary)' }}>
+                      ₹{station.dynamic_price_per_kwh?.toFixed(2) || station.price_per_kwh}/kWh {station.is_peak_pricing && '!!'}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>ECO_SAVED</span>
+                    <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 700 }}>
+                      +{station.co2_saved_kg}KG CO₂
+                    </span>
                   </div>
                 </div>
 
-                {/* ML Insights */}
-                <div className="ml-insights">
-                  <strong>🤖 ML Insights</strong>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '10px', color: 'var(--text-secondary)' }}>
-                    <span>Distance: {station.score_breakdown.distance}/100</span>
-                    <span>Availability: {station.score_breakdown.availability}/100</span>
-                    <span>Demand: {station.score_breakdown.demand}/100</span>
-                    {gridData && (
-                      <span>Grid: {station.score_breakdown.grid}/100</span>
-                    )}
+                {/* ML Diagnostics */}
+                <div className="mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                  <div style={{ marginBottom: '4px' }}>[ ANALYSIS_COMPLETED ]</div>
+                  <div style={{ display: 'flex', gap: '10px', opacity: 0.8 }}>
+                    <span>AVAIL_{station.score_breakdown.availability}%</span>
+                    <span>DEMAND_{station.score_breakdown.demand}%</span>
+                    <span>GRID_{station.score_breakdown.grid}%</span>
                   </div>
                 </div>
 
                 {/* Action buttons */}
-                <div className="d-flex gap-2 mt-3">
+                <div className="d-flex gap-2">
                   <button
                     className="btn btn-primary flex-fill"
                     onClick={(e) => {
                       e.stopPropagation();
                       onStationSelect(station);
                     }}
-                    style={{
-                      background: 'var(--accent-primary)',
-                      color: 'var(--text-primary)',
-                      fontSize: '0.8125rem',
-                      fontWeight: 600,
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      border: 'none'
-                    }}
+                    style={{ fontSize: '0.7rem', padding: '10px' }}
                   >
-                    Select
+                    DEPLOY
                   </button>
                   <button
                     className="btn flex-fill"
@@ -363,38 +370,30 @@ const StationRecommender = ({
                           duration_minutes: 30
                         });
                         alert(response.data.message);
-                        // Ideally we'd refresh the stations list here
                         station.available_chargers = response.data.remaining_chargers;
                       } catch (error) {
-                        alert('Failed to book slot: ' + (error.response?.data?.detail || error.message));
+                        alert('BOOKING_FAILED: ' + (error.response?.data?.detail || error.message));
                       }
                     }}
                     style={{
-                      background: '#10B981',
-                      color: 'white',
-                      fontSize: '0.8125rem',
-                      fontWeight: 600,
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      border: 'none'
+                      background: 'transparent',
+                      border: '1px solid var(--accent-primary)',
+                      color: 'var(--accent-primary)',
+                      fontSize: '0.7rem',
+                      padding: '10px'
                     }}
                   >
-                    Reserve Slot
+                    RESERVE
                   </button>
                   <button
-                    className="btn btn-outline flex-fill"
+                    className="btn btn-outline"
                     onClick={(e) => {
                       e.stopPropagation();
                       window.open(`https://www.google.com/maps/dir/?api=1&destination=${station.latitude},${station.longitude}`, '_blank');
                     }}
-                    style={{
-                      fontSize: '0.8125rem',
-                      fontWeight: 600,
-                      padding: '8px 12px',
-                      borderRadius: '8px'
-                    }}
+                    style={{ padding: '10px' }}
                   >
-                    Navigate
+                    ↗
                   </button>
                 </div>
               </div>
@@ -403,21 +402,29 @@ const StationRecommender = ({
         </>
       )}
 
-      {/* ML Models Status */}
-      <div style={{ 
-        marginTop: '20px', 
-        padding: '14px', 
-        background: 'rgba(136, 216, 183, 0.08)',
-        borderRadius: '10px',
-        border: '1.5px solid rgba(136, 216, 183, 0.2)'
+      {/* ML System Status */}
+      <div className="glass-panel" style={{ 
+        marginTop: '32px', 
+        padding: '20px', 
+        borderRadius: '16px',
+        border: '1px solid var(--border-accent)'
       }}>
-        <div style={{ fontSize: '12px', color: '#059669', fontWeight: 700, marginBottom: '8px' }}>
-          ✅ ML Models Active
+        <div className="mono" style={{ fontSize: '0.7rem', color: 'var(--accent-primary)', fontWeight: 800, marginBottom: '12px' }}>
+          // NEURAL_ENGINE_STATUS
         </div>
-        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-          <div>• Range Predictor: Active</div>
-          <div>• Demand Predictor: Active</div>
-          <div>• Grid Forecaster: Active</div>
+        <div className="mono" style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', lineHeight: 2 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>RANGE_PREDICTOR</span>
+            <span style={{ color: 'var(--accent-primary)' }}>[ ONLINE ]</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>GRID_FORECASTER</span>
+            <span style={{ color: 'var(--accent-primary)' }}>[ ONLINE ]</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span>DEMAND_ANALYZER</span>
+            <span style={{ color: 'var(--accent-primary)' }}>[ ONLINE ]</span>
+          </div>
         </div>
       </div>
     </div>

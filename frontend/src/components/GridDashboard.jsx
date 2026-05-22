@@ -55,8 +55,8 @@ const GridDashboard = () => {
     return (
       <div className="container py-5">
         <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
-          <div className="spinner me-3"></div>
-          <span>Loading grid data...</span>
+          <div className="spinner me-3" style={{ borderColor: 'var(--border-medium)', borderTopColor: 'var(--accent-primary)' }}></div>
+          <span className="mono" style={{ color: 'var(--accent-primary)' }}>SYNCING_WITH_GRID_VECTORS...</span>
         </div>
       </div>
     );
@@ -65,11 +65,11 @@ const GridDashboard = () => {
   if (error) {
     return (
       <div className="container py-5">
-        <div className="alert alert-danger" role="alert">
-          ⚠️ {error}
+        <div className="alert alert-danger mono" role="alert">
+          ⚠️ ERROR: {error}
         </div>
-        <button className="btn btn-primary" onClick={fetchGridData}>
-          🔄 Retry
+        <button className="btn btn-primary mono" onClick={fetchGridData}>
+          [ RE-INIT_PROTOCOL ]
         </button>
       </div>
     );
@@ -80,14 +80,14 @@ const GridDashboard = () => {
     labels: gridData.forecast_next_6h.map(h => h.hour),
     datasets: [
       {
-        label: 'Grid Load Forecast (%)',
+        label: 'GRID_LOAD_VECTORS (%)',
         data: gridData.forecast_next_6h.map(h => h.load),
-        borderColor: '#FFB380',
-        backgroundColor: 'rgba(255, 179, 128, 0.1)',
+        borderColor: '#00FF9D',
+        backgroundColor: 'rgba(0, 255, 157, 0.1)',
         tension: 0.4,
         fill: true,
-        pointBackgroundColor: '#FFB380',
-        pointBorderColor: '#fff',
+        pointBackgroundColor: '#00FF9D',
+        pointBorderColor: '#050505',
         pointBorderWidth: 2,
         pointRadius: 5,
         pointHoverRadius: 7
@@ -101,23 +101,20 @@ const GridDashboard = () => {
     plugins: {
       legend: {
         labels: { 
-          color: '#6B6B6B',
-          font: { size: 12 }
+          color: '#F0F4F8',
+          font: { family: 'Space Mono', size: 10 }
         }
       },
       tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        titleColor: '#1A1A1A',
-        bodyColor: '#6B6B6B',
-        borderColor: '#F0F0F0',
+        backgroundColor: 'rgba(15, 17, 21, 0.95)',
+        titleColor: '#00FF9D',
+        bodyColor: '#F0F4F8',
+        borderColor: 'var(--accent-primary)',
         borderWidth: 1,
         padding: 12,
         displayColors: true,
-        callbacks: {
-          label: function(context) {
-            return `Grid Load: ${context.parsed.y.toFixed(1)}%`;
-          }
-        }
+        titleFont: { family: 'Space Mono' },
+        bodyFont: { family: 'Space Mono' }
       }
     },
     scales: {
@@ -125,158 +122,100 @@ const GridDashboard = () => {
         beginAtZero: true,
         max: 100,
         ticks: { 
-          color: '#9CA3AF',
-          callback: function(value) {
-            return value + '%';
-          }
+          color: '#64748B',
+          font: { family: 'Space Mono', size: 10 },
+          callback: (v) => v + '%'
         },
-        grid: { 
-          color: 'rgba(240, 240, 240, 0.5)' 
-        }
+        grid: { color: 'rgba(255, 255, 255, 0.05)' }
       },
       x: {
         ticks: { 
-          color: '#9CA3AF' 
+          color: '#64748B',
+          font: { family: 'Space Mono', size: 10 }
         },
-        grid: { 
-          color: 'rgba(240, 240, 240, 0.5)' 
-        }
+        grid: { display: false }
       }
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'high': return '#DC2626';
-      case 'medium': return '#D97706';
-      case 'low': return '#059669';
-      default: return '#6B6B6B';
-    }
-  };
-
-  const getStatusBackground = (status) => {
-    switch (status) {
-      case 'high': return 'rgba(220, 38, 38, 0.1)';
-      case 'medium': return 'rgba(217, 119, 6, 0.1)';
-      case 'low': return 'rgba(5, 150, 105, 0.1)';
-      default: return 'rgba(107, 107, 107, 0.1)';
+      case 'high': return '#FF4D4D';
+      case 'medium': return '#FACC15';
+      case 'low': return '#00FF9D';
+      default: return '#64748B';
     }
   };
 
   return (
-    <div className="grid-dashboard">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="text-gradient mb-0" style={{ fontSize: '2rem', fontWeight: 700 }}>
-          📊 Grid Dashboard
-        </h2>
+    <div className="grid-dashboard px-4 py-5" style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <div className="d-flex justify-content-between align-items-end mb-5 border-bottom pb-4" style={{ borderColor: 'var(--border-medium)' }}>
+        <div>
+          <h2 className="mono" style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '3px' }}>
+            // GRID_SYNAPSE_CENTER
+          </h2>
+          <div className="mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            LOCATION_NODE: MAHARASHTRA_CORE // STATUS: ACTIVE
+          </div>
+        </div>
         <button 
-          className="btn btn-outline"
+          className="btn btn-outline mono"
           onClick={fetchGridData}
-          style={{
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            padding: '8px 16px',
-            borderRadius: '8px'
-          }}
+          style={{ fontSize: '0.7rem', padding: '10px 20px' }}
         >
-          🔄 Refresh
+          [ RE-SYNC_DATA ]
         </button>
       </div>
-
-      {lastUpdated && (
-        <div style={{ 
-          fontSize: '0.8125rem', 
-          color: '#9CA3AF', 
-          marginBottom: '24px',
-          textAlign: 'right'
-        }}>
-          Last updated: {lastUpdated.toLocaleTimeString()}
-        </div>
-      )}
       
-      <div className="row g-4 mb-4">
+      <div className="row g-4 mb-5">
         <div className="col-md-4">
-          <div className="grid-card">
-            <h6 className="mb-3" style={{ fontSize: '0.875rem', color: '#9CA3AF', fontWeight: 500 }}>
-              Current Grid Load
+          <div className="glass-card p-4" style={{ borderRadius: '20px', borderLeft: `4px solid ${getStatusColor(gridData.status)}` }}>
+            <h6 className="mono mb-4" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              CURRENT_LOAD_INTENSITY
             </h6>
             <div className="d-flex align-items-center justify-content-between">
-              <span style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 700, 
-                color: getStatusColor(gridData.status) 
-              }}>
+              <span className="mono" style={{ fontSize: '2.8rem', fontWeight: 900, color: getStatusColor(gridData.status) }}>
                 {gridData.current_load_percentage.toFixed(1)}%
               </span>
-              <span className="status-indicator" style={{ 
-                background: getStatusBackground(gridData.status),
+              <span className="mono" style={{ 
+                background: 'rgba(255,255,255,0.05)',
                 color: getStatusColor(gridData.status),
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '0.8125rem',
-                fontWeight: 600
+                padding: '6px 14px',
+                borderRadius: '4px',
+                fontSize: '0.7rem',
+                fontWeight: 800,
+                border: `1px solid ${getStatusColor(gridData.status)}`
               }}>
                 {gridData.status.toUpperCase()}
               </span>
             </div>
-            <div style={{ 
-              fontSize: '0.8125rem', 
-              color: '#9CA3AF', 
-              marginTop: '12px' 
-            }}>
-              ML Forecast • Updated: {new Date(gridData.timestamp).toLocaleTimeString()}
-            </div>
           </div>
         </div>
 
         <div className="col-md-4">
-          <div className="grid-card">
-            <h6 className="mb-3" style={{ fontSize: '0.875rem', color: '#9CA3AF', fontWeight: 500 }}>
-              Price Multiplier
+          <div className="glass-card p-4" style={{ borderRadius: '20px', borderLeft: '4px solid var(--accent-secondary)' }}>
+            <h6 className="mono mb-4" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              DYNAMIC_PRICE_INDEX
             </h6>
             <div className="d-flex align-items-center justify-content-between">
-              <span style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 700, 
-                color: gridData.price_multiplier > 1.2 ? '#D97706' : '#059669' 
-              }}>
+              <span className="mono" style={{ fontSize: '2.8rem', fontWeight: 900, color: 'var(--accent-secondary)' }}>
                 {gridData.price_multiplier}x
               </span>
-              <span style={{ fontSize: '2rem' }}>⚡</span>
-            </div>
-            <div style={{ 
-              fontSize: '0.8125rem', 
-              color: '#9CA3AF', 
-              marginTop: '12px' 
-            }}>
-              Base rate × {gridData.price_multiplier}
-              {gridData.price_multiplier > 1.2 && ' (Peak pricing)'}
-              {gridData.price_multiplier < 1.0 && ' (Off-peak discount)'}
+              <span style={{ fontSize: '2.4rem', filter: 'drop-shadow(0 0 10px var(--accent-secondary))' }}>⚡</span>
             </div>
           </div>
         </div>
 
         <div className="col-md-4">
-          <div className="grid-card">
-            <h6 className="mb-3" style={{ fontSize: '0.875rem', color: '#9CA3AF', fontWeight: 500 }}>
-              Renewable Energy
+          <div className="glass-card p-4" style={{ borderRadius: '20px', borderLeft: '4px solid var(--accent-primary)' }}>
+            <h6 className="mono mb-4" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              RENEWABLE_SYNC_RATIO
             </h6>
             <div className="d-flex align-items-center justify-content-between">
-              <span style={{ 
-                fontSize: '2.5rem', 
-                fontWeight: 700, 
-                color: '#059669' 
-              }}>
+              <span className="mono" style={{ fontSize: '2.8rem', fontWeight: 900, color: 'var(--accent-primary)' }}>
                 {gridData.renewable_percentage.toFixed(1)}%
               </span>
-              <span style={{ fontSize: '2rem' }}>🌱</span>
-            </div>
-            <div style={{ 
-              fontSize: '0.8125rem', 
-              color: '#9CA3AF', 
-              marginTop: '12px' 
-            }}>
-              From solar & wind sources
+              <span style={{ fontSize: '2.4rem', filter: 'drop-shadow(0 0 10px var(--accent-primary))' }}>🌱</span>
             </div>
           </div>
         </div>
@@ -284,145 +223,53 @@ const GridDashboard = () => {
 
       <div className="row g-4">
         <div className="col-lg-8">
-          <div className="chart-container" style={{ height: '350px' }}>
-            <h5 className="mb-4" style={{ fontSize: '1.125rem', fontWeight: 600 }}>
-              📈 6-Hour Load Forecast (ML-Powered)
+          <div className="glass-panel p-4" style={{ height: '450px', borderRadius: '24px' }}>
+            <h5 className="mono mb-4" style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+              &gt; NEURAL_LOAD_FORECAST_HEX_06
             </h5>
-            <Line data={chartData} options={chartOptions} />
+            <div style={{ height: '350px' }}>
+              <Line data={chartData} options={chartOptions} />
+            </div>
           </div>
         </div>
 
         <div className="col-lg-4">
-          <div className="grid-card h-100">
-            <h5 className="mb-4" style={{ fontSize: '1.125rem', fontWeight: 600 }}>
-              💡 Charging Recommendation
+          <div className="glass-panel p-4 h-100" style={{ borderRadius: '24px', border: '1px solid var(--border-accent)' }}>
+            <h5 className="mono mb-4" style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
+              &gt; AI_STRATEGY_OUTPUT
             </h5>
             <div className="text-center py-4">
               {gridData.recommended_charging ? (
                 <div>
-                  <div style={{ fontSize: '4rem', marginBottom: '16px' }}>✅</div>
-                  <h4 className="mb-3" style={{ color: '#059669', fontSize: '1.25rem', fontWeight: 600 }}>
-                    Good Time to Charge!
+                  <div style={{ fontSize: '4.5rem', marginBottom: '24px', filter: 'drop-shadow(0 0 20px var(--accent-primary))' }}>⚡</div>
+                  <h4 className="mono mb-3" style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', fontWeight: 900 }}>
+                    OPTIMAL_CHARGE_WINDOW
                   </h4>
-                  <p className="mb-0" style={{ color: '#6B6B6B', fontSize: '0.9375rem', lineHeight: 1.6 }}>
-                    Grid load is relatively low ({gridData.current_load_percentage.toFixed(1)}%). 
-                    Charging now is cost-effective and grid-friendly.
+                  <p className="mono" style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', lineHeight: 1.8 }}>
+                    GRID_LOAD: {gridData.current_load_percentage.toFixed(1)}% [NOMINAL]<br />
+                    STRATEGY: DEPLOY_NOW<br />
+                    EFFICIENCY: HIGH
                   </p>
-                  <div style={{ 
-                    marginTop: '20px', 
-                    padding: '12px', 
-                    background: 'rgba(5, 150, 105, 0.08)',
-                    borderRadius: '8px'
-                  }}>
-                    <div style={{ fontSize: '0.8125rem', color: '#059669', fontWeight: 600 }}>
-                      💰 Estimated Savings
-                    </div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#059669', marginTop: '4px' }}>
-                      {(1.5 - gridData.price_multiplier).toFixed(1)}x cheaper
+                  <div className="mt-4 p-3 mono" style={{ background: 'rgba(0, 255, 157, 0.05)', borderRadius: '12px', border: '1px dashed var(--accent-primary)' }}>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--accent-primary)' }}>EST_COST_ADVANTAGE</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--accent-primary)', marginTop: '4px' }}>
+                      {(1.5 - gridData.price_multiplier).toFixed(1)}X_SAVING
                     </div>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⏰</div>
-                  <h4 className="mb-3" style={{ color: '#D97706', fontSize: '1.25rem', fontWeight: 600 }}>
-                    Consider Waiting
+                  <div style={{ fontSize: '4.5rem', marginBottom: '24px', filter: 'drop-shadow(0 0 20px var(--error))' }}>⚠</div>
+                  <h4 className="mono mb-3" style={{ color: 'var(--error)', fontSize: '1.2rem', fontWeight: 900 }}>
+                    PEAK_LOAD_DETECTED
                   </h4>
-                  <p className="mb-0" style={{ color: '#6B6B6B', fontSize: '0.9375rem', lineHeight: 1.6 }}>
-                    Grid load is high ({gridData.current_load_percentage.toFixed(1)}%). 
-                    Consider charging during off-peak hours for better rates.
+                  <p className="mono" style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', lineHeight: 1.8 }}>
+                    GRID_LOAD: {gridData.current_load_percentage.toFixed(1)}% [CRITICAL]<br />
+                    STRATEGY: DEFER_CHARGE<br />
+                    NEXT_WINDOW: +4H_EST
                   </p>
-                  <div style={{ 
-                    marginTop: '20px', 
-                    padding: '12px', 
-                    background: 'rgba(217, 119, 6, 0.08)',
-                    borderRadius: '8px'
-                  }}>
-                    <div style={{ fontSize: '0.8125rem', color: '#D97706', fontWeight: 600 }}>
-                      📊 Current Load
-                    </div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#D97706', marginTop: '4px' }}>
-                      {gridData.current_load_percentage.toFixed(1)}% (High)
-                    </div>
-                  </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="row g-4 mt-4">
-        <div className="col-12">
-          <div className="grid-card">
-            <h5 className="mb-4" style={{ fontSize: '1.125rem', fontWeight: 600 }}>
-              ℹ️ Understanding Grid Load Levels
-            </h5>
-            <div className="row g-4">
-              <div className="col-md-4">
-                <div className="p-4" style={{ 
-                  background: 'rgba(5, 150, 105, 0.08)', 
-                  borderRadius: '10px',
-                  border: '1.5px solid rgba(5, 150, 105, 0.2)'
-                }}>
-                  <h6 className="mb-3" style={{ color: '#059669', fontSize: '1rem', fontWeight: 600 }}>
-                    ✅ Low Load (&lt;50%)
-                  </h6>
-                  <p className="mb-0" style={{ fontSize: '0.875rem', color: '#6B6B6B', lineHeight: 1.6 }}>
-                    Best time to charge. Lower prices, minimal grid stress, and maximum renewable energy availability.
-                  </p>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="p-4" style={{ 
-                  background: 'rgba(217, 119, 6, 0.08)', 
-                  borderRadius: '10px',
-                  border: '1.5px solid rgba(217, 119, 6, 0.2)'
-                }}>
-                  <h6 className="mb-3" style={{ color: '#D97706', fontSize: '1rem', fontWeight: 600 }}>
-                    ⚠️ Medium Load (50-80%)
-                  </h6>
-                  <p className="mb-0" style={{ fontSize: '0.875rem', color: '#6B6B6B', lineHeight: 1.6 }}>
-                    Moderate charging recommended. Standard pricing applies. Grid is under normal stress.
-                  </p>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="p-4" style={{ 
-                  background: 'rgba(220, 38, 38, 0.08)', 
-                  borderRadius: '10px',
-                  border: '1.5px solid rgba(220, 38, 38, 0.2)'
-                }}>
-                  <h6 className="mb-3" style={{ color: '#DC2626', fontSize: '1rem', fontWeight: 600 }}>
-                    ❌ High Load (&gt;80%)
-                  </h6>
-                  <p className="mb-0" style={{ fontSize: '0.875rem', color: '#6B6B6B', lineHeight: 1.6 }}>
-                    Avoid charging if possible. Higher prices and significant grid stress. Wait for off-peak hours.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ML Model Status */}
-      <div className="row g-4 mt-4">
-        <div className="col-12">
-          <div style={{ 
-            padding: '16px 20px', 
-            background: 'rgba(162, 210, 255, 0.08)',
-            borderRadius: '10px',
-            border: '1.5px solid rgba(162, 210, 255, 0.2)'
-          }}>
-            <div style={{ fontSize: '0.875rem', color: '#2563EB', fontWeight: 700, marginBottom: '8px' }}>
-              🤖 ML Models Active
-            </div>
-            <div style={{ display: 'flex', gap: '24px', fontSize: '0.8125rem', color: '#6B6B6B' }}>
-              <div>• Grid Load Forecaster: Active</div>
-              <div>• Forecast Horizon: 6 hours</div>
-              <div>• Update Frequency: Real-time</div>
-              <div>• Model: Gradient Boosting Regressor</div>
             </div>
           </div>
         </div>

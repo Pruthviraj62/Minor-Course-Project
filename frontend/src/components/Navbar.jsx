@@ -3,13 +3,17 @@ import React from 'react';
 const Navbar = ({ activeView, setActiveView }) => {
   return (
     <nav className="navbar navbar-expand-lg">
-      <div className="container-fluid">
-        <a className="navbar-brand text-gradient" href="#" style={{ 
-          fontWeight: 700, 
-          fontSize: '1.375rem',
-          letterSpacing: '-0.5px'
+      <div className="container-fluid px-4">
+        <a className="navbar-brand mono" href="#" style={{ 
+          fontWeight: 900, 
+          fontSize: '1.25rem',
+          letterSpacing: '1px',
+          color: 'var(--accent-primary)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
         }}>
-          ⚡ EV Scheduler
+          <span style={{ fontSize: '1.5rem' }}>⚡</span> EV_SYNC_CORE
         </a>
         
         <button 
@@ -18,45 +22,53 @@ const Navbar = ({ activeView, setActiveView }) => {
           data-bs-toggle="collapse" 
           data-bs-target="#navbarNav"
           style={{ 
-            borderColor: '#F0F0F0',
-            background: 'transparent'
+            borderColor: 'var(--border-medium)',
+            background: 'rgba(255,255,255,0.05)'
           }}
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon" style={{ filter: 'invert(1)' }}></span>
         </button>
         
         <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
-          <ul className="navbar-nav gap-2">
+          <ul className="navbar-nav gap-3">
             <li className="nav-item">
               <button
-                className={`nav-link ${activeView === 'map' || activeView === 'recommendations' ? 'active' : ''}`}
+                className={`nav-link mono ${activeView === 'map' || activeView === 'recommendations' ? 'active' : ''}`}
                 onClick={() => setActiveView('map')}
                 style={{ 
-                  background: (activeView === 'map' || activeView === 'recommendations') 
-                    ? '#FFB380' 
-                    : 'transparent',
-                  color: '#1A1A1A',
+                  background: 'transparent',
+                  color: (activeView === 'map' || activeView === 'recommendations') 
+                    ? 'var(--accent-primary)' 
+                    : 'var(--text-secondary)',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
                 }}
               >
-                🗺️ Smart Map
+                [ SYNC_MAP ]
               </button>
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${activeView === 'grid' ? 'active' : ''}`}
+                className={`nav-link mono ${activeView === 'grid' ? 'active' : ''}`}
                 onClick={() => setActiveView('grid')}
                 style={{ 
-                  background: activeView === 'grid' 
-                    ? '#FFB380' 
-                    : 'transparent',
-                  color: '#1A1A1A',
+                  background: 'transparent',
+                  color: activeView === 'grid' 
+                    ? 'var(--accent-primary)' 
+                    : 'var(--text-secondary)',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
                 }}
               >
-                📊 Grid Dashboard
+                [ GRID_STATUS ]
               </button>
             </li>
           </ul>

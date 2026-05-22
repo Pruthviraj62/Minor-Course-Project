@@ -57,7 +57,7 @@ function LocationPicker({ onLocationSelect }) {
 }
 
 // Enhanced Route Component using Leaflet Routing Machine
-function SmartRouting({ start, end }) {
+function SmartRouting({ start, end, showItinerary }) {
   const map = useMap();
   const routingControlRef = useRef(null);
 
@@ -70,8 +70,6 @@ function SmartRouting({ start, end }) {
     }
 
     try {
-      // Create routing control with A*/Dijkstra based OSRM engine
-      // showAlternatives: true will show 2 paths as requested
       const routingControl = L.Routing.control({
         waypoints: [
           L.latLng(start.lat, start.lng),
@@ -79,8 +77,8 @@ function SmartRouting({ start, end }) {
         ],
         lineOptions: {
           styles: [
-            { color: '#00d9ff', opacity: 0.8, weight: 6 }, // Primary path
-            { color: '#ff6b6b', opacity: 0.6, weight: 4, dashArray: '5, 10' } // Alternative path
+            { color: '#00FF9D', opacity: 0.8, weight: 6 }, // Cyber Green
+            { color: '#00D9FF', opacity: 0.6, weight: 4, dashArray: '5, 10' } // Cyan Alt
           ],
           extendToWaypoints: true,
           missingRouteTolerance: 100
@@ -90,10 +88,11 @@ function SmartRouting({ start, end }) {
         fitSelectedRoutes: true,
         showAlternatives: true,
         altLineOptions: {
-          styles: [{ color: '#ff6b6b', opacity: 0.6, weight: 4, dashArray: '5, 10' }]
+          styles: [{ color: '#00D9FF', opacity: 0.6, weight: 4, dashArray: '5, 10' }]
         },
-        // Custom formatter to show algorithm info
-        summaryTemplate: '<h2>{name}</h2><h3>{distance}, {time}</h3><p style="font-size: 0.7rem; color: #888;">Algorithm: Dijkstra/A* Optimized</p>'
+        // Container for itinerary
+        itineraryClassName: `routing-itinerary-container ${showItinerary ? '' : 'hidden'}`,
+        summaryTemplate: '<div class="mono" style="color: var(--accent-primary); font-weight: bold; font-size: 1.1rem;">{name}</div><div class="mono" style="color: var(--text-primary);">{distance}, {time}</div><p style="font-size: 0.7rem; color: var(--text-muted);">Engine: OSRM/A*</p>'
       }).addTo(map);
 
       routingControlRef.current = routingControl;
@@ -106,7 +105,7 @@ function SmartRouting({ start, end }) {
         map.removeControl(routingControlRef.current);
       }
     };
-  }, [map, start, end]);
+  }, [map, start, end, showItinerary]);
 
   return null;
 }
@@ -120,12 +119,13 @@ const SmartMap = ({
 }) => {
   const [clickedLocation, setClickedLocation] = useState(null);
   const [nearestStation, setNearestStation] = useState(null);
+  const [showItinerary, setShowItinerary] = useState(false);
   
-  // Default to Mumbai center if no location provided
-  const defaultCenter = { lat: 18.5204, lng: 73.8567 }; // Moved center towards Pune/Sangli/Kolhapur
+  // Default center towards Maharashtra hub
+  const defaultCenter = { lat: 17.5, lng: 74.5 }; 
   const zoom = 8;
 
-  // Find nearest station when user location or clicked location changes
+  // Find nearest station logic
   useEffect(() => {
     const loc = clickedLocation || userLocation;
     if (loc && stations.length > 0) {
@@ -157,6 +157,14 @@ const SmartMap = ({
   const targetStation = selectedStation || nearestStation;
   const startPoint = clickedLocation || userLocation;
 
+  // Toggle itinerary visibility via effect
+  useEffect(() => {
+    const container = document.querySelector('.leaflet-routing-container');
+    if (container) {
+      container.style.display = showItinerary ? 'block' : 'none';
+    }
+  }, [showItinerary, targetStation, startPoint]);
+
   return (
     <div className="smart-map-container" style={{ width: '100%', height: '100%', minHeight: '600px', position: 'relative' }}>
       <MapContainer 
@@ -167,33 +175,21 @@ const SmartMap = ({
         className="leaflet-map"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
         
         <LocationPicker onLocationSelect={handleMapClick} />
         
         {userLocation && (
-          <Marker 
-            position={[userLocation.lat, userLocation.lng]}
-            icon={userLocationIcon}
-          >
-            <Popup>
-              <strong>Your Location</strong>
-            </Popup>
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
+            <Popup><strong className="mono">Origin</strong></Popup>
           </Marker>
         )}
         
         {clickedLocation && (
-          <Marker 
-            position={[clickedLocation.lat, clickedLocation.lng]}
-            icon={new L.Icon.Default()}
-          >
-            <Popup>
-              <strong>Selected Point</strong><br />
-              Lat: {clickedLocation.lat.toFixed(4)}<br />
-              Lng: {clickedLocation.lng.toFixed(4)}
-            </Popup>
+          <Marker position={[clickedLocation.lat, clickedLocation.lng]} icon={new L.Icon.Default()}>
+            <Popup><strong className="mono">Custom Point</strong></Popup>
           </Marker>
         )}
         
@@ -202,30 +198,19 @@ const SmartMap = ({
             key={station.id}
             position={[station.latitude, station.longitude]}
             icon={chargingStationIcon}
-            eventHandlers={{
-              click: () => handleStationClick(station)
-            }}
+            eventHandlers={{ click: () => handleStationClick(station) }}
           >
             <Popup>
-              <div style={{ minWidth: '240px', padding: '10px' }}>
-                <h4 style={{ margin: '0 0 5px 0' }}>{station.name}</h4>
-                <p style={{ fontSize: '0.8rem', margin: '5px 0' }}>{station.address}</p>
-                <div style={{ fontSize: '0.85rem' }}>
-                  <strong>⚡ {station.available_chargers}/{station.total_chargers} available</strong><br />
-                  💰 ₹{station.price_per_kwh}/kWh
+              <div style={{ minWidth: '240px', padding: '5px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: 'var(--accent-primary)' }}>{station.name}</h4>
+                <div className="mono" style={{ fontSize: '0.8rem', marginBottom: '12px' }}>
+                  ⚡ {station.available_chargers}/{station.total_chargers} Free<br />
+                  💰 ₹{station.dynamic_price_per_kwh || station.price_per_kwh}/kWh
                 </div>
                 <button 
                   onClick={() => onStationSelect(station)}
-                  style={{
-                    marginTop: '10px',
-                    width: '100%',
-                    padding: '8px',
-                    background: '#00d9ff',
-                    border: 'none',
-                    borderRadius: '5px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-primary w-100 btn-sm"
+                  style={{ fontSize: '0.75rem' }}
                 >
                   Select Station
                 </button>
@@ -234,64 +219,79 @@ const SmartMap = ({
           </Marker>
         ))}
         
-        {/* Actual road routing with two paths */}
         {startPoint && targetStation && (
           <SmartRouting 
             start={startPoint} 
-            end={{ lat: targetStation.latitude, lng: targetStation.longitude }} 
+            end={{ lat: targetStation.latitude, lng: targetStation.longitude }}
+            showItinerary={showItinerary}
           />
         )}
       </MapContainer>
       
-      {/* Legend and Info Overlay */}
+      {/* Dynamic Controls Overlay */}
       <div style={{
         position: 'absolute',
         top: '20px',
         right: '20px',
-        background: 'rgba(10, 10, 15, 0.9)',
-        color: 'white',
-        padding: '15px',
-        borderRadius: '12px',
-        border: '1px solid rgba(0, 217, 255, 0.3)',
-        zIndex: 1000,
-        fontSize: '0.85rem',
-        maxWidth: '220px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        zIndex: 1000
       }}>
-        <div style={{ fontWeight: 'bold', color: '#00d9ff', marginBottom: '10px', borderBottom: '1px solid #333', paddingBottom: '5px' }}>
-          Navigation Engine
+        {/* Navigation Legend */}
+        <div className="glass-panel" style={{
+          padding: '18px',
+          borderRadius: '16px',
+          fontSize: '0.8rem',
+          width: '240px',
+          border: '1px solid var(--border-accent)'
+        }}>
+          <div className="mono" style={{ fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '12px', textTransform: 'uppercase', fontSize: '0.7rem' }}>
+            // Navigation Engine
+          </div>
+          <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: '14px', height: '14px', background: 'var(--accent-primary)', marginRight: '10px', borderRadius: '3px', boxShadow: '0 0 10px var(--accent-primary)' }}></div>
+            <span className="mono">Shortest Path</span>
+          </div>
+          <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: '14px', height: '14px', background: 'var(--accent-secondary)', marginRight: '10px', borderRadius: '3px', border: '1px dashed white' }}></div>
+            <span className="mono">Alternative</span>
+          </div>
+          
+          <button 
+            onClick={() => setShowItinerary(!showItinerary)}
+            className="btn btn-outline w-100 btn-sm"
+            style={{ fontSize: '0.7rem', padding: '8px' }}
+          >
+            {showItinerary ? 'Hide Directions' : 'Show Directions'}
+          </button>
         </div>
-        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: '12px', height: '12px', background: '#00d9ff', marginRight: '8px', borderRadius: '2px' }}></div>
-          Shortest Path (Primary)
-        </div>
-        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: '12px', height: '12px', background: '#ff6b6b', marginRight: '8px', borderRadius: '2px', border: '1px dashed white' }}></div>
-          Alternative Path
-        </div>
-        <div style={{ marginTop: '10px', fontSize: '0.75rem', opacity: 0.8, fontStyle: 'italic' }}>
-          * Paths calculated using OSRM engine with Dijkstra/A* optimization for real road networks.
-        </div>
+
         {targetStation && (
-          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #333' }}>
-            <span style={{ color: '#aaa' }}>Target:</span><br />
-            <span style={{ fontWeight: 600 }}>{targetStation.name}</span>
+          <div className="glass-panel slide-up" style={{
+            padding: '14px 18px',
+            borderRadius: '16px',
+            borderLeft: '4px solid var(--accent-primary)'
+          }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase' }} className="mono">Active Target</div>
+            <div style={{ fontWeight: 600, fontSize: '0.9rem', marginTop: '4px' }}>{targetStation.name}</div>
           </div>
         )}
       </div>
 
-      <div style={{
+      <div className="mono" style={{
         position: 'absolute',
         bottom: '20px',
         left: '20px',
-        background: 'rgba(10, 10, 15, 0.8)',
-        color: 'white',
-        padding: '10px 15px',
-        borderRadius: '8px',
+        background: 'rgba(0,0,0,0.7)',
+        color: 'var(--accent-primary)',
+        padding: '8px 12px',
+        borderRadius: '6px',
         zIndex: 1000,
-        fontSize: '0.8rem'
+        fontSize: '0.7rem',
+        border: '1px solid var(--border-light)'
       }}>
-        📍 Click map to find nearest station
+        📡 SYSTEM LIVE // {stations.length} STATIONS LOADED
       </div>
     </div>
   );

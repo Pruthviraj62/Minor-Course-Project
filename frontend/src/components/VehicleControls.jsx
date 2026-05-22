@@ -71,24 +71,30 @@ const VehicleControls = ({
   const timeToEmpty = calculateTimeToEmpty();
 
   return (
-    <div className="vehicle-controls">
-      <h3 style={{ 
-        fontSize: '1.25rem', 
-        fontWeight: 600, 
-        marginBottom: '24px',
-        color: 'var(--text-primary)'
+    <div className="vehicle-controls" style={{ background: 'var(--bg-secondary)', padding: '24px' }}>
+      <h3 className="mono" style={{ 
+        fontSize: '1rem', 
+        fontWeight: 800, 
+        marginBottom: '32px',
+        color: 'var(--accent-secondary)',
+        textTransform: 'uppercase',
+        letterSpacing: '2px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
       }}>
-        🚗 Vehicle Controls
+        <span style={{ fontSize: '1.4rem' }}>🚗</span> VEHICLE_TELEMETRY
       </h3>
       
       {/* Vehicle Model */}
       <div className="mb-4">
-        <label className="form-label">Vehicle Model</label>
+        <label className="form-label mono" style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>UNIT_MODEL</label>
         <select
           name="vehicle_model"
-          className="form-control"
+          className="form-control mono"
           value={vehicleData.vehicle_model}
           onChange={handleChange}
+          style={{ fontSize: '0.8rem' }}
         >
           <option value="Tesla Model 3">Tesla Model 3</option>
           <option value="Tesla Model Y">Tesla Model Y</option>
@@ -103,8 +109,8 @@ const VehicleControls = ({
 
       {/* Battery Level */}
       <div className="mb-4">
-        <label className="form-label">
-          Battery Level: <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{vehicleData.battery_level}%</span>
+        <label className="form-label mono" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>
+          SOC_LEVEL: <span style={{ color: 'var(--accent-primary)', fontWeight: 800 }}>{vehicleData.battery_level}%</span>
         </label>
         <input
           type="range"
@@ -116,32 +122,12 @@ const VehicleControls = ({
           value={vehicleData.battery_level}
           onChange={handleChange}
         />
-        <div className="d-flex justify-content-between" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-          <span>0%</span>
-          <span>50%</span>
-          <span>100%</span>
-        </div>
-      </div>
-
-      {/* Battery Capacity */}
-      <div className="mb-4">
-        <label className="form-label">Battery Capacity (kWh)</label>
-        <input
-          type="number"
-          className="form-control"
-          name="battery_capacity"
-          value={vehicleData.battery_capacity}
-          onChange={handleChange}
-          step="0.1"
-          min="10"
-          max="200"
-        />
       </div>
 
       {/* Current Speed */}
       <div className="mb-4">
-        <label className="form-label">
-          Current Speed: <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>{vehicleData.speed} km/h</span>
+        <label className="form-label mono" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>
+          VELOCITY_KPH: <span style={{ color: 'var(--accent-secondary)', fontWeight: 800 }}>{vehicleData.speed}</span>
         </label>
         <input
           type="range"
@@ -152,172 +138,124 @@ const VehicleControls = ({
           step="5"
           value={vehicleData.speed}
           onChange={handleChange}
+          style={{ accentColor: 'var(--accent-secondary)' }}
         />
-        <div className="d-flex justify-content-between" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px' }}>
-          <span>0</span>
-          <span>60</span>
-          <span>120</span>
+      </div>
+
+      <div className="row g-2 mb-4">
+        <div className="col-6">
+          <label className="form-label mono" style={{ fontSize: '0.65rem' }}>CAPACITY_KWH</label>
+          <input
+            type="number"
+            className="form-control mono"
+            name="battery_capacity"
+            value={vehicleData.battery_capacity}
+            onChange={handleChange}
+            style={{ fontSize: '0.8rem' }}
+          />
+        </div>
+        <div className="col-6">
+          <label className="form-label mono" style={{ fontSize: '0.65rem' }}>WEATHER_MOD</label>
+          <select
+            name="weather_condition"
+            className="form-control mono"
+            value={vehicleData.weather_condition}
+            onChange={handleChange}
+            style={{ fontSize: '0.8rem' }}
+          >
+            <option value="clear">CLEAR</option>
+            <option value="rain">RAIN</option>
+            <option value="cold">COLD</option>
+            <option value="hot">HOT</option>
+          </select>
         </div>
       </div>
 
       {/* Driving Conditions */}
-      <div className="mb-4">
-        <label className="form-label">Driving Conditions</label>
+      <div className="mb-5">
+        <label className="form-label mono" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>ENV_MODE</label>
         <div className="btn-group w-100" role="group">
-          <button
-            type="button"
-            className={`btn btn-sm ${vehicleData.driving_conditions === 'city' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setVehicleData(prev => ({ ...prev, driving_conditions: 'city' }))}
-            style={{
-              background: vehicleData.driving_conditions === 'city' ? 'var(--accent-primary)' : 'transparent',
-              borderColor: 'var(--border-medium)',
-              color: 'var(--text-primary)',
-              fontSize: '0.8125rem',
-              padding: '8px 12px'
-            }}
-          >
-            🏙️ City
-          </button>
-          <button
-            type="button"
-            className={`btn btn-sm ${vehicleData.driving_conditions === 'normal' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setVehicleData(prev => ({ ...prev, driving_conditions: 'normal' }))}
-            style={{
-              background: vehicleData.driving_conditions === 'normal' ? 'var(--accent-primary)' : 'transparent',
-              borderColor: 'var(--border-medium)',
-              color: 'var(--text-primary)',
-              fontSize: '0.8125rem',
-              padding: '8px 12px'
-            }}
-          >
-            🛣️ Normal
-          </button>
-          <button
-            type="button"
-            className={`btn btn-sm ${vehicleData.driving_conditions === 'highway' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setVehicleData(prev => ({ ...prev, driving_conditions: 'highway' }))}
-            style={{
-              background: vehicleData.driving_conditions === 'highway' ? 'var(--accent-primary)' : 'transparent',
-              borderColor: 'var(--border-medium)',
-              color: 'var(--text-primary)',
-              fontSize: '0.8125rem',
-              padding: '8px 12px'
-            }}
-          >
-            ⚡ Highway
-          </button>
+          {['city', 'normal', 'highway'].map(mode => (
+            <button
+              key={mode}
+              type="button"
+              className="btn btn-sm mono"
+              onClick={() => setVehicleData(prev => ({ ...prev, driving_conditions: mode }))}
+              style={{
+                background: vehicleData.driving_conditions === mode ? 'var(--bg-accent)' : 'transparent',
+                border: `1px solid ${vehicleData.driving_conditions === mode ? 'var(--accent-primary)' : 'var(--border-medium)'}`,
+                color: vehicleData.driving_conditions === mode ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontSize: '0.65rem',
+                flex: 1
+              }}
+            >
+              {mode.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Weather Conditions */}
-      <div className="mb-4">
-        <label className="form-label">Weather Condition</label>
-        <select
-          name="weather_condition"
-          className="form-control"
-          value={vehicleData.weather_condition}
-          onChange={handleChange}
-        >
-          <option value="clear">☀️ Clear (Optimal)</option>
-          <option value="rain">🌧️ Rain (-12% Range)</option>
-          <option value="cold">❄️ Cold (-20% Range)</option>
-          <option value="hot">🥵 Hot (-5% Range)</option>
-        </select>
-      </div>
-
       {/* Action Buttons */}
-      <button
-        className="btn btn-primary w-100 mb-3"
-        onClick={handlePredictRange}
-        disabled={loading}
-        style={{
-          background: 'var(--accent-primary)',
-          color: 'var(--text-primary)',
-          fontWeight: 600,
-          padding: '12px 20px',
-          border: 'none',
-          borderRadius: '10px',
-          fontSize: '0.9375rem',
-          boxShadow: 'var(--shadow-sm)',
-          transition: 'all 0.3s ease'
-        }}
-      >
-        {loading ? 'Calculating...' : '🔋 Predict Range'}
-      </button>
+      <div className="d-flex flex-column gap-3">
+        <button
+          className="btn btn-primary w-100"
+          onClick={handlePredictRange}
+          disabled={loading}
+          style={{ fontSize: '0.8rem' }}
+        >
+          {loading ? 'PROCESSING...' : 'RUN_PREDICTION'}
+        </button>
 
-      <button
-        className="btn btn-outline w-100"
-        onClick={onFindStations}
-        style={{
-          background: 'transparent',
-          borderColor: 'var(--border-medium)',
-          color: 'var(--text-primary)',
-          fontWeight: 600,
-          padding: '12px 20px',
-          borderRadius: '10px',
-          fontSize: '0.9375rem'
-        }}
-      >
-        🎯 Find Charging Stations
-      </button>
+        <button
+          className="btn btn-outline w-100"
+          onClick={onFindStations}
+          style={{ fontSize: '0.8rem' }}
+        >
+          SYNC_STATIONS
+        </button>
+      </div>
 
       {/* Prediction Results */}
       {prediction && (
-        <div className="prediction-result">
-          <h6 style={{ 
-            fontSize: '0.8125rem', 
-            fontWeight: 600, 
-            marginBottom: '12px',
-            color: '#059669',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
+        <div className="prediction-result glass-panel mt-5" style={{ padding: '20px', borderLeft: '4px solid var(--accent-primary)' }}>
+          <h6 className="mono" style={{ 
+            fontSize: '0.65rem', 
+            fontWeight: 800, 
+            marginBottom: '16px',
+            color: 'var(--accent-primary)',
+            textTransform: 'uppercase'
           }}>
-            📊 ML Prediction
+            [ SIMULATION_RESULT ]
           </h6>
           
-          <div className="row g-3 mb-3">
-            <div className="col-6">
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Predicted Range</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#059669' }}>
-                {prediction.predicted_range_km.toFixed(1)} km
+          <div className="row g-3">
+            <div className="col-12 mb-2">
+              <div className="mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>EST_MAX_RANGE</div>
+              <div className="mono" style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
+                {prediction.predicted_range_km.toFixed(1)}<span style={{ fontSize: '0.8rem', marginLeft: '4px' }}>KM</span>
               </div>
             </div>
             <div className="col-6">
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Efficiency</div>
-              <div style={{ fontSize: '18px', fontWeight: 600, color: '#2563EB' }}>
-                {prediction.efficiency_km_per_kwh.toFixed(2)} km/kWh
+              <div className="mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>EFFICIENCY</div>
+              <div className="mono" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>
+                {prediction.efficiency_km_per_kwh.toFixed(2)}
               </div>
             </div>
+            {timeToEmpty && (
+              <div className="col-6">
+                <div className="mono" style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>TTE_CLOCK</div>
+                <div className="mono" style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--warning)' }}>
+                  {Math.floor(timeToEmpty / 60)}H {timeToEmpty % 60}M
+                </div>
+              </div>
+            )}
           </div>
 
-          {timeToEmpty && (
-            <div style={{ 
-              padding: '10px', 
-              background: 'rgba(255, 204, 128, 0.1)',
-              borderRadius: '8px',
-              marginBottom: '12px',
-              border: '1px solid rgba(255, 204, 128, 0.2)'
-            }}>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>⏱️ Time to Empty</div>
-              <div style={{ fontSize: '18px', fontWeight: 600, color: '#D97706' }}>
-                {Math.floor(timeToEmpty / 60)}h {timeToEmpty % 60}m
-              </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                at {vehicleData.speed} km/h
-              </div>
+          {prediction.weather_impact_percent > 0 && (
+            <div className="mt-3 mono" style={{ fontSize: '0.6rem', color: 'var(--error)' }}>
+              ⚠ WEATHER_PENALTY: -{prediction.weather_impact_percent}%
             </div>
           )}
-
-          <div style={{ 
-            fontSize: '10px', 
-            color: 'var(--text-muted)', 
-            marginTop: '12px',
-            paddingTop: '12px',
-            borderTop: '1px solid var(--border-light)'
-          }}>
-            Based on {vehicleData.battery_level}% battery ({vehicleData.battery_capacity} kWh) 
-            in {vehicleData.driving_conditions} driving
-          </div>
         </div>
       )}
     </div>

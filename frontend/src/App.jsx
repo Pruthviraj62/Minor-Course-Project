@@ -82,25 +82,20 @@ function App() {
           </div>
         )}
 
-        {activeView === 'map' && (
-          <div className="map-view" style={{ display: 'flex', height: 'calc(100vh - 70px)' }}>
+        {(activeView === 'map' || activeView === 'recommendations') && (
+          <div className="map-view">
             {/* Left Panel - Vehicle Controls */}
-            <div style={{ 
-              width: '380px', 
-              padding: '20px', 
-              background: 'rgba(10, 10, 15, 0.5)',
-              overflowY: 'auto'
-            }}>
+            <div className="panel-left">
               <VehicleControls 
                 vehicleData={vehicleData}
                 setVehicleData={setVehicleData}
                 onPredictRange={handlePredictRange}
-                onFindStations={handleFindStations}
+                onFindStations={() => setActiveView('recommendations')}
               />
             </div>
 
-            {/* Center - 2D Map */}
-            <div style={{ flex: 1, position: 'relative' }}>
+            {/* Center - Smart Map */}
+            <div className="panel-center">
               <SmartMap 
                 stations={stations}
                 userLocation={userLocation}
@@ -110,13 +105,8 @@ function App() {
               />
             </div>
 
-            {/* Right Panel - Station Recommendations */}
-            <div style={{ 
-              width: '420px', 
-              padding: '20px', 
-              background: 'rgba(10, 10, 15, 0.5)',
-              overflowY: 'auto'
-            }}>
+            {/* Right Panel - AI Recommendations */}
+            <div className="panel-right">
               <StationRecommender 
                 stations={stations}
                 userLocation={userLocation}
@@ -129,39 +119,11 @@ function App() {
           </div>
         )}
 
-        {activeView === 'recommendations' && (
-          <div className="map-view" style={{ display: 'flex', height: 'calc(100vh - 70px)' }}>
-            {/* Full width recommendations */}
-            <div style={{ 
-              width: '500px', 
-              padding: '20px', 
-              background: 'rgba(10, 10, 15, 0.5)',
-              overflowY: 'auto'
-            }}>
-              <StationRecommender 
-                stations={stations}
-                userLocation={userLocation}
-                vehicleData={vehicleData}
-                rangePrediction={rangePrediction}
-                selectedStation={selectedStation}
-                onStationSelect={handleStationSelect}
-              />
-            </div>
-            
-            <div style={{ flex: 1, position: 'relative' }}>
-              <SmartMap 
-                stations={stations}
-                userLocation={userLocation}
-                onLocationSelect={handleLocationSelect}
-                selectedStation={selectedStation}
-                onStationSelect={handleStationSelect}
-              />
-            </div>
+        {activeView === 'grid' && (
+          <div className="container py-5">
+            <GridDashboard />
           </div>
         )}
-
-        {activeView === 'range' && <GridDashboard />}
-        {activeView === 'grid' && <GridDashboard />}
       </main>
     </div>
   );
